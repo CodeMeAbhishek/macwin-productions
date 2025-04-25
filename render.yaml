@@ -2,7 +2,9 @@ services:
   - type: web
     name: unisphere
     env: python
-    buildCommand: pip install -r requirements.txt
+    buildCommand: |
+      pip install -r requirements.txt
+      python manage.py collectstatic --noinput
     startCommand: gunicorn unisphere.wsgi:application
     envVars:
       - key: PYTHON_VERSION
@@ -12,12 +14,14 @@ services:
       - key: DEBUG
         value: False
       - key: ALLOWED_HOSTS
-        value: unisphere.onrender.com
+        value: unisphere-chau.onrender.com,localhost,127.0.0.1
       - key: DATABASE_URL
         fromDatabase:
           name: unisphere-db
           property: connectionString
-    healthCheckPath: /health/
+      - key: DJANGO_SETTINGS_MODULE
+        value: unisphere.settings
+    healthCheckPath: /
     autoDeploy: true
 
 databases:
