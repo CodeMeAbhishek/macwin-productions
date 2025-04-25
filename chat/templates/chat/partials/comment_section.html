@@ -1,0 +1,47 @@
+{# Initially hide the comments section #}
+<div class="comments-section" id="comments-{{ post.id }}" style="display: none;">
+    {% if post.comments.all %}
+        <div class="comments-list">
+            {% for comment in post.comments.all %}
+                <div class="comment-item">
+                    <div class="comment-header">
+                        <a href="{% url 'user_profile' comment.user.id %}" class="comment-user">
+                            {% if comment.user.profile.profile_pic %}
+                                <img src="{{ comment.user.profile.profile_pic.url }}" alt="{{ comment.user.username }}" class="comment-profile-pic">
+                            {% else %}
+                                <div class="comment-profile-pic" style="background: var(--primary-light);"></div>
+                            {% endif %}
+                            <span class="comment-username">{{ comment.user.profile.full_name }}</span>
+                        </a>
+                        <span class="comment-timestamp">{{ comment.timestamp|timesince }}</span>
+                    </div>
+                    <div class="comment-content">
+                        {{ comment.content }}
+                    </div>
+                    {% if comment.user == request.user %}
+                        <div class="comment-actions">
+                            <button class="delete-comment-btn" onclick="deleteComment('{{ comment.id }}', this)">
+                                🗑️ Delete
+                            </button>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    
+    <form class="comment-form" onsubmit="submitComment(event, '{{ post.id }}', this)">
+        {% csrf_token %}
+        <div class="comment-input-wrapper">
+            <input type="text" 
+                   name="content" 
+                   class="comment-input" 
+                   id="comment-input-{{ post.id }}"
+                   placeholder="Write a comment..."
+                   required>
+            <button type="submit" class="comment-submit">
+                💬 Comment
+            </button>
+        </div>
+    </form>
+</div> 

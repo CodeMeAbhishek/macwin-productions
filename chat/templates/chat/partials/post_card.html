@@ -1,0 +1,41 @@
+<div class="post-card" data-post-id="{{ post.id }}">
+    <div class="post-header">
+        {% if post.user.profile.profile_pic %}
+            <img src="{{ post.user.profile.profile_pic.url }}" alt="{{ post.user.username }}" class="post-profile-pic">
+        {% else %}
+            <div class="post-profile-pic" style="background: var(--primary-light);"></div>
+        {% endif %}
+        <div class="post-user-info">
+            <a href="{% url 'user_profile' post.user.id %}" class="post-username">
+                {{ post.user.profile.full_name }}
+            </a>
+            <span class="post-timestamp">{{ post.timestamp|timesince }} ago</span>
+        </div>
+    </div>
+    <div class="post-content">
+        {{ post.content }}
+    </div>
+    {% if post.image %}
+        <div class="post-image-container">
+            <img src="{{ post.image.url }}" alt="Post image" class="post-image">
+        </div>
+    {% endif %}
+    <div class="post-actions">
+        <button class="action-btn {% if post.is_liked %}liked{% endif %}" onclick="likePost('{{ post.id }}', this)">
+            ❤️ {{ post.likes_count }} Likes
+        </button>
+        <button class="action-btn" onclick="toggleComments('{{ post.id }}')">
+            💬 {{ post.comments_count }} Comments
+        </button>
+        {% if post.user == request.user %}
+            <a href="{% url 'edit_post' post.id %}" class="action-btn">
+                ✏️ Edit
+            </a>
+            <button class="action-btn" onclick="deletePost('{{ post.id }}')">
+                🗑️ Delete
+            </button>
+        {% endif %}
+    </div>
+    
+    {% include 'chat/partials/comment_section.html' with post=post %}
+</div> 

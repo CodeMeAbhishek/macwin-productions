@@ -1,0 +1,229 @@
+{% extends 'chat/base.html' %}
+
+{% block title %}Messages | MacWin{% endblock %}
+
+{% block extra_css %}
+<style>
+    .messages-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .messages-section {
+        background: white;
+        border-radius: 1rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+
+    .section-header {
+        background: var(--primary-color);
+        color: white;
+        padding: 1.5rem 2rem;
+        border-radius: 1rem 1rem 0 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .section-header h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin: 0;
+    }
+
+    .profile-icon {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 0.5rem;
+        border-radius: 0.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+    }
+
+    .friends-list {
+        padding: 1.5rem;
+    }
+
+    .friend-card {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.25rem;
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 1rem;
+        margin-bottom: 1rem;
+        transition: all 0.2s;
+    }
+
+    .friend-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .friend-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        text-decoration: none;
+        color: inherit;
+        flex: 1;
+    }
+
+    .profile-pic {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid var(--primary-color);
+    }
+
+    .friend-details {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        flex: 1;
+    }
+
+    .friend-name {
+        color: var(--text-color);
+        font-size: 1.125rem;
+        font-weight: 600;
+    }
+
+    .friend-username {
+        color: var(--secondary-color);
+        font-size: 0.875rem;
+    }
+
+    .last-message {
+        color: var(--secondary-color);
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        line-clamp: 1;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .message-time {
+        color: var(--secondary-color);
+        font-size: 0.75rem;
+        margin-top: 0.25rem;
+    }
+
+    .unread-badge {
+        background: var(--primary-color);
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 1rem;
+        font-size: 0.75rem;
+        margin-left: 0.5rem;
+    }
+
+    .message-btn {
+        padding: 0.75rem 1.25rem;
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s;
+    }
+
+    .message-btn:hover {
+        background: var(--primary-dark);
+        transform: translateY(-1px);
+    }
+
+    .no-messages {
+        text-align: center;
+        padding: 3rem 1.5rem;
+        color: var(--secondary-color);
+    }
+
+    @media (max-width: 768px) {
+        .messages-container {
+            margin: 1rem auto;
+        }
+
+        .friend-card {
+            flex-direction: column;
+            text-align: center;
+            gap: 1rem;
+        }
+
+        .friend-info {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .message-btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="messages-container">
+    <div class="messages-section">
+        <div class="section-header">
+            <h2>
+                <span class="profile-icon">💬</span> 
+                Messages
+            </h2>
+        </div>
+
+        <div class="friends-list">
+            {% if friends_with_messages %}
+                {% for friend in friends_with_messages %}
+                    <div class="friend-card">
+                        <div class="friend-info">
+                            {% if friend.user.profile.profile_pic %}
+                                <img src="{{ friend.user.profile.profile_pic.url }}" alt="{{ friend.user.username }}" class="profile-pic">
+                            {% else %}
+                                <div class="profile-pic" style="background: var(--primary-light);"></div>
+                            {% endif %}
+                            <div class="friend-details">
+                                <div class="friend-name">
+                                    {{ friend.user.profile.full_name }}
+                                    {% if friend.unread_count > 0 %}
+                                        <span class="unread-badge">{{ friend.unread_count }}</span>
+                                    {% endif %}
+                                </div>
+                                <div class="friend-username">@{{ friend.user.username }}</div>
+                                {% if friend.last_message %}
+                                    <div class="last-message">{{ friend.last_message.content }}</div>
+                                    <div class="message-time">{{ friend.last_message.timestamp|timesince }} ago</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <a href="{% url 'chat_with_friend' friend.user.id %}" class="message-btn">
+                            💬 Message
+                        </a>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="no-messages">
+                    <h3>No messages yet</h3>
+                    <p>Start a conversation with your friends!</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

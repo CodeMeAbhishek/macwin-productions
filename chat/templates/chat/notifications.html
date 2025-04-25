@@ -1,0 +1,487 @@
+{% extends 'chat/base.html' %}
+
+{% block title %}Notifications | MacWin{% endblock %}
+
+{% block extra_css %}
+<style>
+    .notifications-container {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .notifications-header {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 1rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .notifications-title {
+        font-size: 1.5rem;
+        color: var(--text-color);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .notification-count {
+        background: var(--primary-color);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 1rem;
+        font-size: 0.875rem;
+    }
+
+    .notification-item {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 1rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        transition: all 0.2s;
+        position: relative;
+    }
+
+    .notification-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .notification-item.unread {
+        background: var(--primary-lighter);
+        border-left: 4px solid var(--primary-color);
+    }
+
+    .notification-profile-pic {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid var(--primary-color);
+    }
+
+    .notification-content {
+        flex: 1;
+    }
+
+    .notification-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 0.5rem;
+    }
+
+    .notification-user {
+        font-weight: 600;
+        color: var(--text-color);
+        text-decoration: none;
+    }
+
+    .notification-user:hover {
+        color: var(--primary-color);
+    }
+
+    .notification-timestamp {
+        color: var(--secondary-color);
+        font-size: 0.875rem;
+    }
+
+    .notification-message {
+        color: var(--text-color);
+        font-size: 0.875rem;
+        line-height: 1.5;
+    }
+
+    .notification-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .notification-status {
+        color: var(--primary-color);
+        font-weight: 500;
+        font-size: 0.875rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .notification-status.accepted {
+        color: var(--primary-color);
+    }
+
+    .notification-status.rejected {
+        color: #ef4444;
+    }
+
+    .notification-btn {
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: none;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .notification-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .accept-btn {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .accept-btn:hover:not(:disabled) {
+        background: var(--primary-dark);
+        transform: translateY(-1px);
+    }
+
+    .decline-btn {
+        background: #ef4444;
+        color: white;
+    }
+
+    .decline-btn:hover:not(:disabled) {
+        background: #dc2626;
+        transform: translateY(-1px);
+    }
+
+    .delete-notification {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        padding: 0.25rem;
+        background: none;
+        border: none;
+        color: var(--secondary-color);
+        cursor: pointer;
+        opacity: 0.5;
+        transition: all 0.2s;
+    }
+
+    .delete-notification:hover {
+        opacity: 1;
+        color: #ef4444;
+    }
+
+    .no-notifications {
+        text-align: center;
+        padding: 3rem 1.5rem;
+        color: var(--secondary-color);
+    }
+
+    .no-notifications-message {
+        font-size: 1.125rem;
+        margin-bottom: 1rem;
+    }
+
+    .clear-all-btn {
+        padding: 0.5rem 1rem;
+        background: #ef4444;
+        color: white;
+        border: none;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .clear-all-btn:hover {
+        background: #dc2626;
+        transform: translateY(-1px);
+    }
+
+    .fade-out {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .status-message {
+        animation: fadeIn 0.3s ease-out;
+    }
+
+    @media (max-width: 640px) {
+        .notification-item {
+            flex-direction: column;
+        }
+
+        .notification-profile-pic {
+            width: 40px;
+            height: 40px;
+        }
+
+        .notification-actions {
+            flex-direction: column;
+        }
+
+        .notification-btn {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .notifications-header {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: stretch;
+        }
+
+        .clear-all-btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="notifications-container">
+    <div class="notifications-header">
+        <h1 class="notifications-title">
+            🔔 Notifications
+            {% if unread_count %}
+                <span class="notification-count">{{ unread_count }}</span>
+            {% endif %}
+        </h1>
+        {% if notifications %}
+            <button class="clear-all-btn" onclick="clearAllNotifications()">
+                🗑️ Clear All
+            </button>
+        {% endif %}
+    </div>
+
+    {% if notifications %}
+        {% for notification in notifications %}
+            <div class="notification-item {% if not notification.is_read %}unread{% endif %}" id="notification-{{ notification.id }}">
+                {% if notification.sender.profile.profile_pic %}
+                    <img src="{{ notification.sender.profile.profile_pic.url }}" alt="{{ notification.sender.username }}" class="notification-profile-pic">
+                {% else %}
+                    <div class="notification-profile-pic" style="background: var(--primary-light);"></div>
+                {% endif %}
+                
+                <div class="notification-content">
+                    <div class="notification-header">
+                        <a href="{% url 'user_profile' notification.sender.id %}" class="notification-user">
+                            {{ notification.sender.profile.full_name }}
+                        </a>
+                        <span class="notification-timestamp">{{ notification.timestamp|timesince }} ago</span>
+                    </div>
+                    
+                    <div class="notification-message">
+                        {{ notification.message }}
+                    </div>
+
+                    {% if notification.notif_type == 'friend_request' %}
+                        <div class="notification-actions" id="actions-{{ notification.id }}">
+                            <button class="notification-btn accept-btn" onclick="handleFriendRequest('{{ notification.id }}', 'accept', this)">
+                                ✅ Accept
+                            </button>
+                            <button class="notification-btn decline-btn" onclick="handleFriendRequest('{{ notification.id }}', 'decline', this)">
+                                ❌ Decline
+                            </button>
+                        </div>
+                        <div class="notification-status" id="status-{{ notification.id }}" style="display: none;"></div>
+                    {% endif %}
+                </div>
+
+                <button class="delete-notification" onclick="deleteNotification('{{ notification.id }}', this)">
+                    🗑️
+                </button>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="no-notifications">
+            <p class="no-notifications-message">No notifications yet!</p>
+            <p>When someone interacts with your posts or sends you a friend request, you'll see it here.</p>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+    function handleFriendRequest(notificationId, action, button) {
+        // Disable both buttons
+        const actionsDiv = button.closest('.notification-actions');
+        const buttons = actionsDiv.querySelectorAll('button');
+        buttons.forEach(btn => btn.disabled = true);
+
+        const endpoint = action === 'accept' ? 
+            `/accept-request/${notificationId}/` : 
+            `/decline-request/${notificationId}/`;
+
+        fetch(endpoint, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Hide the action buttons with animation
+                actionsDiv.style.opacity = '0';
+                actionsDiv.style.transform = 'translateY(-10px)';
+                
+                // Show the status message
+                const statusDiv = document.getElementById(`status-${notificationId}`);
+                const message = action === 'accept' ? 
+                    '✅ You accepted the friend request' : 
+                    '❌ You declined the friend request';
+                
+                setTimeout(() => {
+                    actionsDiv.style.display = 'none';
+                    statusDiv.textContent = message;
+                    statusDiv.classList.add(action === 'accept' ? 'accepted' : 'rejected');
+                    statusDiv.style.display = 'block';
+                    statusDiv.classList.add('status-message');
+                }, 300);
+
+                showNotification(
+                    action === 'accept' ? 
+                    'Friend request accepted!' : 
+                    'Friend request declined', 
+                    'success'
+                );
+            } else {
+                // Re-enable buttons if there's an error
+                buttons.forEach(btn => btn.disabled = false);
+                showNotification(data.error || 'An error occurred', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            // Re-enable buttons if there's an error
+            buttons.forEach(btn => btn.disabled = false);
+            showNotification('An error occurred', 'error');
+        });
+    }
+
+    function deleteNotification(notificationId, button) {
+        fetch(`/notifications/delete/${notificationId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                const notificationItem = button.closest('.notification-item');
+                notificationItem.remove();
+                
+                // If no more notifications, show the empty state
+                const container = document.querySelector('.notifications-container');
+                if (!container.querySelector('.notification-item')) {
+                    container.innerHTML = `
+                        <div class="notifications-header">
+                            <h1 class="notifications-title">
+                                🔔 Notifications
+                            </h1>
+                        </div>
+                        <div class="no-notifications">
+                            <p class="no-notifications-message">No notifications yet!</p>
+                            <p>When someone interacts with your posts or sends you a friend request, you'll see it here.</p>
+                        </div>
+                    `;
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('An error occurred while deleting the notification', 'error');
+        });
+    }
+
+    function showNotification(message, type = 'success') {
+        const notif = document.createElement('div');
+        notif.className = `notification-message ${type}`;
+        notif.textContent = message;
+        document.body.appendChild(notif);
+
+        setTimeout(() => {
+            notif.style.animation = 'slideOut 0.3s ease-in';
+            setTimeout(() => notif.remove(), 300);
+        }, 3000);
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function clearAllNotifications() {
+        if (!confirm('Are you sure you want to clear all notifications?')) {
+            return;
+        }
+
+        fetch('/notifications/clear-all/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Update the UI to show no notifications
+                const container = document.querySelector('.notifications-container');
+                container.innerHTML = `
+                    <div class="notifications-header">
+                        <h1 class="notifications-title">
+                            🔔 Notifications
+                        </h1>
+                    </div>
+                    <div class="no-notifications">
+                        <p class="no-notifications-message">No notifications yet!</p>
+                        <p>When someone interacts with your posts or sends you a friend request, you'll see it here.</p>
+                    </div>
+                `;
+                showNotification('All notifications cleared', 'success');
+            } else {
+                showNotification(data.error || 'An error occurred', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('An error occurred while clearing notifications', 'error');
+        });
+    }
+</script>
+{% endblock %} 

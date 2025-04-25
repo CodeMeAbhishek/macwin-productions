@@ -1,0 +1,23 @@
+<div class="comment-item">
+    <div class="comment-header">
+        <a href="{% url 'user_profile' comment.user.id %}" class="comment-user">
+            {% if comment.user.profile.profile_pic %}
+                <img src="{{ comment.user.profile.profile_pic.url }}" alt="{{ comment.user.username }}" class="comment-profile-pic">
+            {% else %}
+                <div class="comment-profile-pic" style="background: var(--primary-light);"></div>
+            {% endif %}
+            <span class="comment-username">{{ comment.user.profile.full_name }}</span>
+        </a>
+        <span class="comment-timestamp">{{ comment.timestamp|timesince }}</span>
+    </div>
+    <div class="comment-content">
+        {{ comment.content }}
+    </div>
+    {% if comment.user == request.user %}
+        <div class="comment-actions">
+            <button class="delete-comment-btn" onclick="deleteComment('{{ comment.id }}', this)">
+                🗑️ Delete
+            </button>
+        </div>
+    {% endif %}
+</div> 

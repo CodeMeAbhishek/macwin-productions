@@ -1,0 +1,155 @@
+{% extends 'chat/base.html' %}
+
+{% block title %}Edit Post | MacWin{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: #0fc2c0;
+        --primary-dark: #0d9e9c;
+        --primary-light: #e6f9f9;
+        --primary-lighter: #f0fcfc;
+        --border-color: #e2e8f0;
+        --text-color: #2d3748;
+        --secondary-color: #718096;
+    }
+
+    .edit-container {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .edit-card {
+        background: white;
+        padding: 2rem;
+        border-radius: 1rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .edit-header {
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid var(--primary-light);
+    }
+
+    .edit-title {
+        color: var(--primary-color);
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .edit-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .edit-textarea {
+        width: 100%;
+        min-height: 150px;
+        padding: 1rem;
+        font-size: 0.875rem;
+        border: 2px solid var(--border-color);
+        border-radius: 0.5rem;
+        resize: vertical;
+        transition: all 0.2s;
+    }
+
+    .edit-textarea:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px var(--primary-light);
+    }
+
+    .edit-actions {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    .save-btn {
+        padding: 0.875rem 1.5rem;
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .save-btn:hover {
+        background: var(--primary-dark);
+        transform: translateY(-1px);
+    }
+
+    .cancel-btn {
+        padding: 0.875rem 1.5rem;
+        background: var(--primary-light);
+        color: var(--primary-color);
+        border: none;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .cancel-btn:hover {
+        background: var(--primary-lighter);
+        transform: translateY(-1px);
+    }
+
+    @media (max-width: 768px) {
+        .edit-container {
+            margin: 1rem auto;
+        }
+
+        .edit-card {
+            padding: 1.5rem;
+        }
+
+        .edit-actions {
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .save-btn,
+        .cancel-btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="edit-container">
+    <div class="edit-card">
+        <div class="edit-header">
+            <h1 class="edit-title">✏️ Edit Your Post</h1>
+        </div>
+        <form method="post" class="edit-form">
+            {% csrf_token %}
+            <textarea name="content" class="edit-textarea" placeholder="What's on your mind?" required>{{ post.content }}</textarea>
+            <div class="edit-actions">
+                <button type="submit" class="save-btn">
+                    💾 Save Changes
+                </button>
+                <a href="{% url 'index' %}" class="cancel-btn">
+                    ❌ Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %} 

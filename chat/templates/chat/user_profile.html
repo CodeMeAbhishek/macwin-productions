@@ -1,0 +1,594 @@
+{% extends 'chat/base.html' %}
+
+{% block title %}{{ other_user.username }}'s Profile | MacWin{% endblock %}
+
+{% block extra_css %}
+<style>
+    .profile-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 2rem;
+    }
+
+    .main-content {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .profile-header {
+        background: white;
+        padding: 2rem;
+        border-radius: 1rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        text-align: center;
+    }
+
+    .profile-pic-container {
+        position: relative;
+        width: 200px;
+        height: 200px;
+        margin: 0 auto 1.5rem;
+    }
+
+    .profile-pic {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid var(--primary-color);
+        transition: transform 0.3s;
+    }
+
+    .profile-pic:hover {
+        transform: scale(1.05);
+    }
+
+    .profile-name {
+        color: var(--primary-color);
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .profile-username {
+        color: var(--secondary-color);
+        font-size: 1.125rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .profile-details {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin: 1.5rem 0;
+        padding: 0 1rem;
+    }
+
+    .detail-item {
+        background: var(--primary-light);
+        padding: 1.25rem;
+        border-radius: 0.75rem;
+        transition: transform 0.2s;
+    }
+
+    .detail-item:hover {
+        transform: translateY(-2px);
+    }
+
+    .detail-label {
+        color: var(--primary-color);
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .detail-value {
+        color: var(--text-color);
+        font-size: 1rem;
+        font-weight: 500;
+    }
+
+    .profile-bio {
+        color: var(--text-color);
+        line-height: 1.6;
+        margin: 1.5rem 0;
+        padding: 1.5rem;
+        background: var(--primary-light);
+        border-radius: 0.75rem;
+        font-size: 1rem;
+    }
+
+    .friend-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin: 1.5rem 0;
+    }
+
+    .action-btn {
+        padding: 0.875rem 1.75rem;
+        border-radius: 0.75rem;
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        border: none;
+    }
+
+    .message-btn {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .message-btn:hover {
+        background: var(--primary-dark);
+        transform: translateY(-2px);
+    }
+
+    .remove-btn {
+        background: #f8f9fa;
+        color: var(--text-color);
+        border: 1px solid var(--border-color);
+    }
+
+    .remove-btn:hover {
+        background: #f1f3f5;
+        transform: translateY(-2px);
+    }
+
+    .add-btn {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .add-btn:hover {
+        background: var(--primary-dark);
+        transform: translateY(-2px);
+    }
+
+    .pending-btn {
+        background: #f8f9fa;
+        color: var(--text-color);
+        border: 1px solid var(--border-color);
+        cursor: default;
+    }
+
+    .sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .friends-section {
+        background: white;
+        padding: 2rem;
+        border-radius: 1rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .friends-header {
+        color: var(--primary-color);
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid var(--primary-light);
+    }
+
+    .friends-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .friend-card {
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        background: var(--primary-light);
+        border-radius: 0.75rem;
+        transition: all 0.2s;
+    }
+
+    .friend-card:hover {
+        transform: translateY(-2px);
+        background: var(--primary-lighter);
+    }
+
+    .friend-pic {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid var(--primary-color);
+    }
+
+    .friend-info {
+        flex: 1;
+        margin-left: 1rem;
+    }
+
+    .friend-name {
+        color: var(--primary-color);
+        font-size: 1rem;
+        font-weight: 500;
+        margin: 0;
+    }
+
+    .friend-username {
+        color: var(--secondary-color);
+        font-size: 0.875rem;
+        margin: 0.25rem 0;
+    }
+
+    .view-profile {
+        color: var(--primary-color);
+        font-size: 0.875rem;
+        text-decoration: none;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .view-profile:hover {
+        color: var(--primary-dark);
+        text-decoration: underline;
+    }
+
+    .no-friends {
+        text-align: center;
+        padding: 2rem;
+        color: var(--secondary-color);
+        background: var(--primary-light);
+        border-radius: 0.75rem;
+        font-size: 1rem;
+    }
+
+    .error-message {
+        color: #dc2626;
+        font-size: 0.875rem;
+        margin-top: 1rem;
+        text-align: center;
+        display: none;
+        padding: 0.75rem;
+        background: #fee2e2;
+        border-radius: 0.5rem;
+    }
+
+    @media (max-width: 1024px) {
+        .profile-container {
+            grid-template-columns: 1fr;
+        }
+
+        .sidebar {
+            order: 2;
+        }
+
+        .main-content {
+            order: 1;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .profile-container {
+            margin: 1rem auto;
+        }
+
+        .profile-header {
+            padding: 1.5rem;
+        }
+
+        .profile-pic-container {
+            width: 150px;
+            height: 150px;
+        }
+
+        .profile-name {
+            font-size: 1.75rem;
+        }
+
+        .friend-actions {
+            flex-direction: column;
+            padding: 0 1rem;
+        }
+
+        .action-btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <div class="main-content">
+        <div class="profile-header">
+            <div class="profile-pic-container">
+                {% if other_user.profile.profile_pic %}
+                    <img src="{{ other_user.profile.profile_pic.url }}" alt="{{ other_user.username }}" class="profile-pic">
+                {% else %}
+                    <div class="profile-pic" style="background: var(--primary-light);"></div>
+                {% endif %}
+            </div>
+            <h1 class="profile-name">{{ other_user.profile.full_name }}</h1>
+            <div class="profile-username">@{{ other_user.username }}</div>
+
+            {% if other_user.profile.bio %}
+                <div class="profile-bio">
+                    {{ other_user.profile.bio }}
+                </div>
+            {% endif %}
+
+            <div class="friend-actions">
+                {% if is_friend %}
+                    <a href="{% url 'chat_with_friend' other_user.id %}" class="action-btn message-btn">
+                        💬 Message
+                    </a>
+                    <form action="{% url 'remove_friend' other_user.id %}" method="post" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="action-btn remove-btn">
+                            ❌ Remove Friend
+                        </button>
+                    </form>
+                {% elif friend_request_sent %}
+                    <button class="action-btn pending-btn" disabled>
+                        📨 Friend Request Sent
+                    </button>
+                    <form action="{% url 'cancel_request' other_user.id %}" method="post" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="action-btn remove-btn">
+                            ❌ Cancel Request
+                        </button>
+                    </form>
+                {% elif friend_request_received %}
+                    <button class="action-btn accept-btn" onclick="acceptFriendRequest('{{ friend_request.id }}', this)">Accept Friend Request</button>
+                {% else %}
+                    <button onclick="sendFriendRequest('{{ other_user.id }}', this)" class="action-btn add-btn">
+                        👋 Add Friend
+                    </button>
+                {% endif %}
+            </div>
+
+            <div class="profile-details">
+                {% if other_user.profile.branch %}
+                    <div class="detail-item">
+                        <div class="detail-label">🎓 Branch</div>
+                        <div class="detail-value">{{ other_user.profile.branch }}</div>
+                    </div>
+                {% endif %}
+                {% if other_user.profile.year %}
+                    <div class="detail-item">
+                        <div class="detail-label">📅 Year</div>
+                        <div class="detail-value">{{ other_user.profile.year }}</div>
+                    </div>
+                {% endif %}
+                {% if other_user.profile.relationship_status %}
+                    <div class="detail-item">
+                        <div class="detail-label">❤️ Relationship Status</div>
+                        <div class="detail-value">{{ other_user.profile.get_relationship_status_display }}</div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="sidebar">
+        <div class="friends-section">
+            <h2 class="friends-header">👥 Friends</h2>
+            <div class="friends-list">
+                {% if friends %}
+                    {% for friend in friends %}
+                        <div class="friend-card">
+                            {% if friend.profile.profile_pic %}
+                                <img src="{{ friend.profile.profile_pic.url }}" alt="{{ friend.username }}" class="friend-pic">
+                            {% else %}
+                                <div class="friend-pic" style="background: var(--primary-light);"></div>
+                            {% endif %}
+                            <div class="friend-info">
+                                <h3 class="friend-name">{{ friend.profile.full_name }}</h3>
+                                <div class="friend-username">@{{ friend.username }}</div>
+                                <a href="{% url 'user_profile' friend.id %}" class="view-profile">
+                                    View Profile →
+                                </a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="no-friends">
+                        No friends yet
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="error-message"></div>
+
+<script>
+function sendFriendRequest(userId, button) {
+    button.disabled = true;
+    fetch(`/send-request/${userId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json',
+        },
+        credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            // Update the friend actions section
+            const friendActions = button.closest('.friend-actions');
+            const csrfToken = '{{ csrf_token }}';
+            friendActions.innerHTML = `
+                <button class="action-btn pending-btn" disabled>
+                    📨 Friend Request Sent
+                </button>
+                <form action="/cancel-request/${userId}/" method="post" style="display: inline;">
+                    <input type="hidden" name="csrfmiddlewaretoken" value="${csrfToken}">
+                    <button type="submit" class="action-btn remove-btn">
+                        ❌ Cancel Request
+                    </button>
+                </form>
+            `;
+            
+            // Show success message
+            showNotification('👋 Friend request sent!');
+        } else {
+            button.disabled = false;
+            showNotification(data.error || 'Failed to send friend request', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        button.disabled = false;
+        showNotification('An error occurred while sending the request', 'error');
+    });
+}
+
+function acceptFriendRequest(requestId, button) {
+    button.disabled = true;
+    fetch(`/accept-request/${requestId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+        },
+    })
+    .then(response => {
+        if (response.ok) {
+            button.className = 'action-btn add-btn';
+            button.innerHTML = '✅ Accepted';
+        } else {
+            throw new Error('Failed to accept friend request');
+        }
+    })
+    .catch(error => {
+        button.disabled = false;
+        const errorMessage = document.querySelector('.error-message');
+        errorMessage.style.display = 'block';
+        errorMessage.textContent = error.message;
+        setTimeout(() => {
+            errorMessage.style.display = 'none';
+        }, 3000);
+    });
+}
+
+function showNotification(message, type = 'success') {
+    const notif = document.createElement('div');
+    notif.className = `notification-message ${type}`;
+    notif.textContent = message;
+    document.body.appendChild(notif);
+
+    setTimeout(() => {
+        notif.style.animation = 'slideOut 0.3s ease-in';
+        setTimeout(() => notif.remove(), 300);
+    }, 3000);
+}
+
+function cancelFriendRequest(event, form) {
+    event.preventDefault();
+    const userId = form.action.split('/').slice(-2)[0];
+    const csrfToken = form.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    fetch(`/cancel-request/${userId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'Content-Type': 'application/json',
+        },
+        credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            // Update the friend actions section
+            const friendActions = form.closest('.friend-actions');
+            friendActions.innerHTML = `
+                <form action="/send-request/${userId}/" method="post" style="display: inline;">
+                    <input type="hidden" name="csrfmiddlewaretoken" value="${csrfToken}">
+                    <button type="submit" class="action-btn add-btn">
+                        👋 Add Friend
+                    </button>
+                </form>
+            `;
+            
+            // Show success message
+            showNotification('✕ Friend request cancelled');
+        } else {
+            showNotification(data.error || 'An error occurred', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('An error occurred while cancelling the request', 'error');
+    });
+}
+
+// Add CSS for notifications if not already present
+if (!document.querySelector('style[data-notifications]')) {
+    const style = document.createElement('style');
+    style.setAttribute('data-notifications', '');
+    style.textContent = `
+        .notification-message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            color: white;
+            font-weight: 500;
+            z-index: 1000;
+            animation: slideIn 0.3s ease-out;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .notification-message.success {
+            background: var(--primary-color);
+        }
+
+        .notification-message.error {
+            background: #dc2626;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+// Update all cancel request forms to use AJAX
+document.addEventListener('DOMContentLoaded', function() {
+    const cancelRequestForms = document.querySelectorAll('form[action^="/cancel-request/"]');
+    cancelRequestForms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            cancelFriendRequest(e, this);
+        });
+    });
+});
+</script>
+{% endblock %}

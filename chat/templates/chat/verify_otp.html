@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Verify Email | Unisphere</title>
+  <style>
+    body { font-family: sans-serif; background: #f0f2f5; padding: 2rem; }
+    .card {
+      background: white; max-width: 500px; margin: auto;
+      padding: 2rem; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    }
+    input, button {
+      width: 100%; padding: 10px; margin-top: 10px;
+      border: 1px solid #ccc; border-radius: 6px;
+    }
+    button {
+      background: #1877f2; color: white; border: none;
+      cursor: pointer; font-weight: bold;
+    }
+    button:hover { background: #145dbf; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Enter OTP sent to your email</h2>
+    <p id="timer-text" style="color:#555; font-size: 0.9rem;"></p>
+    <button id="resend-btn" style="display:none; margin-top: 1rem; background: #38b2ac;">Resend OTP</button>
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit">Verify & Complete</button>
+    </form>
+    <p style="margin-top: 1rem; font-size: 0.9rem;">
+      Didn't get it? <a href="{% url 'register' %}">Register again</a>
+    </p>
+  </div>
+
+  <script>
+    let seconds = parseInt("{{ seconds_remaining|default:0 }}");
+    const timerText = document.getElementById('timer-text');
+    const resendBtn = document.getElementById('resend-btn');
+
+
+    function updateTimer() {
+      if (seconds <= 0) {
+        timerText.innerText = "OTP expired.";
+        resendBtn.style.display = 'inline-block';
+        return;
+      }
+      const mins = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      timerText.innerText = `OTP expires in ${mins}:${secs < 10 ? '0' + secs : secs}`;
+      seconds--;
+      setTimeout(updateTimer, 1000);
+    }
+
+    updateTimer();
+
+    resendBtn.addEventListener('click', () => {
+      fetch("{% url 'resend_otp' %}", {
+        method: 'POST',
+        headers: {'X-CSRFToken': '{{ csrf_token }}'}
+      }).then(res => {
+        if (res.ok) {
+          location.reload(); // reload to get new timer
+        }
+      });
+    });
+  </script>
+</body>
+</html> 

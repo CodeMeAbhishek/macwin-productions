@@ -1,0 +1,291 @@
+{% extends 'chat/base.html' %}
+
+{% block title %}Privacy Policy | MacWin{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: #0fc2c0;
+        --primary-dark: #0d9e9c;
+        --primary-light: #e6f9f9;
+        --primary-lighter: #f0fcfc;
+        --border-color: #e2e8f0;
+        --text-color: #2d3748;
+        --secondary-color: #718096;
+    }
+
+    .privacy-container {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 1.5rem;
+    }
+
+    .privacy-header {
+        text-align: center;
+        margin-bottom: 3rem;
+        padding: 2rem;
+        background: white;
+        border-radius: 1rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .privacy-header h1 {
+        color: var(--primary-color);
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+    }
+
+    .privacy-header h1::before {
+        content: "🔒";
+        font-size: 2rem;
+    }
+
+    .privacy-header p {
+        color: var(--secondary-color);
+        font-size: 1.125rem;
+        max-width: 600px;
+        margin: 0 auto;
+        line-height: 1.6;
+    }
+
+    .privacy-section {
+        background: white;
+        padding: 2rem;
+        border-radius: 1rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        margin-bottom: 2rem;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .privacy-section:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .privacy-section h3 {
+        color: var(--primary-color);
+        font-size: 1.5rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        border-bottom: 2px solid var(--primary-light);
+        padding-bottom: 1rem;
+    }
+
+    .privacy-section h3::before {
+        font-size: 1.5rem;
+    }
+
+    .privacy-section:nth-child(2) h3::before { content: "📝"; }
+    .privacy-section:nth-child(3) h3::before { content: "🔍"; }
+    .privacy-section:nth-child(4) h3::before { content: "🤝"; }
+    .privacy-section:nth-child(5) h3::before { content: "⚡"; }
+    .privacy-section:nth-child(6) h3::before { content: "🛡️"; }
+
+    .privacy-section p {
+        color: var(--text-color);
+        line-height: 1.8;
+        margin-bottom: 1.5rem;
+        font-size: 1rem;
+    }
+
+    .privacy-section ul {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 1.5rem 0;
+    }
+
+    .privacy-section li {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+        color: var(--text-color);
+        padding: 0.75rem 1rem;
+        background: var(--primary-lighter);
+        border-radius: 0.5rem;
+        transition: transform 0.2s;
+    }
+
+    .privacy-section li:hover {
+        transform: translateX(5px);
+    }
+
+    .privacy-section li::before {
+        content: "✓";
+        color: var(--primary-color);
+        font-weight: bold;
+    }
+
+    .privacy-note {
+        background: var(--primary-light);
+        padding: 1.5rem;
+        border-radius: 0.75rem;
+        margin: 2rem 0;
+        border-left: 4px solid var(--primary-color);
+        position: relative;
+    }
+
+    .privacy-note::before {
+        content: "ℹ️";
+        position: absolute;
+        left: -12px;
+        top: -12px;
+        background: white;
+        padding: 0.5rem;
+        border-radius: 50%;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .privacy-note p {
+        color: var(--text-color);
+        margin: 0;
+        font-size: 0.9375rem;
+    }
+
+    .privacy-contact {
+        margin-top: 4rem;
+        text-align: center;
+        background: white;
+        padding: 2rem;
+        border-radius: 1rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .privacy-contact p {
+        color: var(--text-color);
+        margin-bottom: 1rem;
+    }
+
+    .privacy-contact a {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 500;
+        padding: 0.75rem 1.5rem;
+        background: var(--primary-light);
+        border-radius: 0.5rem;
+        transition: all 0.2s;
+    }
+
+    .privacy-contact a::before {
+        content: "✉️";
+    }
+
+    .privacy-contact a:hover {
+        background: var(--primary-color);
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    @media (max-width: 768px) {
+        .privacy-container {
+            padding: 1rem;
+            margin: 1rem auto;
+        }
+
+        .privacy-header {
+            padding: 1.5rem;
+        }
+
+        .privacy-header h1 {
+            font-size: 2rem;
+        }
+
+        .privacy-section {
+            padding: 1.5rem;
+        }
+
+        .privacy-section li {
+            padding: 0.5rem 0.75rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="privacy-container">
+    <div class="privacy-header">
+        <h1>Privacy Policy</h1>
+        <p>
+            Your privacy is important to us. This policy explains how we collect, use, and protect your personal information on MacWin.
+        </p>
+    </div>
+
+    <div class="privacy-section">
+        <h3>Information We Collect</h3>
+        <p>We collect information that you provide directly to us, including:</p>
+        <ul>
+            <li>Name, email address, and contact information</li>
+            <li>Profile information and preferences</li>
+            <li>Content you post, share, or upload</li>
+            <li>Messages and communications with other users</li>
+            <li>Device and usage information</li>
+        </ul>
+    </div>
+
+    <div class="privacy-section">
+        <h3>How We Use Your Information</h3>
+        <p>We use your information to:</p>
+        <ul>
+            <li>Provide and improve our services</li>
+            <li>Personalize your experience</li>
+            <li>Communicate with you about updates and changes</li>
+            <li>Ensure platform security and prevent abuse</li>
+            <li>Comply with legal obligations</li>
+        </ul>
+        <div class="privacy-note">
+            <p>
+                We process your information based on your consent, our legitimate interests, and legal requirements.
+            </p>
+        </div>
+    </div>
+
+    <div class="privacy-section">
+        <h3>Information Sharing</h3>
+        <p>We do not sell your personal information. We may share your information only in specific circumstances:</p>
+        <ul>
+            <li>With your explicit consent</li>
+            <li>To comply with legal requirements or court orders</li>
+            <li>To protect our rights, safety, and property</li>
+            <li>With service providers who assist in platform operations</li>
+        </ul>
+    </div>
+
+    <div class="privacy-section">
+        <h3>Your Rights</h3>
+        <p>You have the following rights regarding your personal information:</p>
+        <ul>
+            <li>Access and review your personal information</li>
+            <li>Correct inaccurate or incomplete information</li>
+            <li>Request deletion of your information</li>
+            <li>Opt-out of certain data uses and communications</li>
+            <li>Export your data in a portable format</li>
+        </ul>
+    </div>
+
+    <div class="privacy-section">
+        <h3>Data Security</h3>
+        <p>
+            We implement appropriate technical and organizational measures to protect your personal information. This includes encryption, access controls, and regular security assessments.
+        </p>
+        <div class="privacy-note">
+            <p>
+                While we strive to protect your information, no method of transmission over the internet is 100% secure. We cannot guarantee absolute security.
+            </p>
+        </div>
+    </div>
+
+    <div class="privacy-contact">
+        <p>Have questions about our Privacy Policy?</p>
+        <a href="mailto:privacy@macwin.com">Contact Our Privacy Team</a>
+    </div>
+</div>
+{% endblock %} 

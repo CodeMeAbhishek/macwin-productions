@@ -1,0 +1,248 @@
+{% extends 'chat/base.html' %}
+
+{% block title %}FAQ | MacWin{% endblock %}
+
+{% block extra_css %}
+<style>
+    .faq-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .faq-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+    .faq-header h1 {
+        color: var(--primary-color);
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .faq-header p {
+        color: var(--secondary-color);
+        font-size: 1.125rem;
+        max-width: 600px;
+        margin: 0 auto;
+        line-height: 1.6;
+    }
+
+    .faq-section {
+        background: white;
+        padding: 2rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+    }
+
+    .faq-item {
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 1.5rem;
+    }
+
+    .faq-item:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+
+    .faq-question {
+        color: var(--primary-color);
+        font-size: 1.25rem;
+        font-weight: 500;
+        margin-bottom: 1rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .faq-question:hover {
+        color: var(--primary-dark);
+    }
+
+    .faq-answer {
+        color: var(--text-color);
+        line-height: 1.6;
+        margin-left: 1.5rem;
+        padding-left: 1rem;
+        border-left: 3px solid var(--primary-light);
+    }
+
+    .faq-search {
+        margin-bottom: 2rem;
+    }
+
+    .faq-search input {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: 0.5rem;
+        font-size: 1rem;
+        transition: all 0.2s;
+    }
+
+    .faq-search input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px var(--primary-light);
+    }
+
+    .faq-search input::placeholder {
+        color: var(--secondary-color);
+    }
+
+    .faq-categories {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .faq-category {
+        padding: 0.5rem 1rem;
+        border-radius: 2rem;
+        background: var(--primary-light);
+        color: var(--primary-color);
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .faq-category:hover {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .faq-contact {
+        text-align: center;
+        margin-top: 3rem;
+    }
+
+    .faq-contact p {
+        color: var(--secondary-color);
+        margin-bottom: 1rem;
+    }
+
+    .faq-contact a {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .faq-contact a:hover {
+        text-decoration: underline;
+    }
+
+    @media (max-width: 768px) {
+        .faq-container {
+            padding: 1rem;
+        }
+
+        .faq-header h1 {
+            font-size: 2rem;
+        }
+
+        .faq-section {
+            padding: 1.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="faq-container">
+    <div class="faq-header">
+        <h1>Frequently Asked Questions</h1>
+        <p>
+            Find answers to common questions about MacWin. If you can't find what you're looking for, feel free to contact our support team.
+        </p>
+    </div>
+
+    <div class="faq-search">
+        <input type="text" placeholder="Search FAQs..." id="faqSearch">
+    </div>
+
+    <div class="faq-categories">
+        <div class="faq-category">General</div>
+        <div class="faq-category">Account</div>
+        <div class="faq-category">Features</div>
+        <div class="faq-category">Security</div>
+    </div>
+
+    <div class="faq-section">
+        <div class="faq-item">
+            <div class="faq-question">What is MacWin?</div>
+            <div class="faq-answer">
+                MacWin is a social platform designed specifically for NUV.ac.in students to connect, share, and communicate. It provides a secure and engaging environment for academic collaboration and social interaction.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">How do I create an account?</div>
+            <div class="faq-answer">
+                You can create an account using your NUV.ac.in email address. Simply click on the "Register" button and follow the registration process. You'll need to verify your email address to complete the registration.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">Is MacWin free to use?</div>
+            <div class="faq-answer">
+                Yes, MacWin is completely free for all NUV.ac.in students. We believe in providing equal access to all students for academic and social networking.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">How do I report inappropriate content?</div>
+            <div class="faq-answer">
+                You can report any inappropriate content by clicking the report button on the post or by contacting our support team. We take all reports seriously and will review them promptly.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">Can I customize my profile?</div>
+            <div class="faq-answer">
+                Yes, you can customize your profile by adding a profile picture, cover photo, and personal information. You can also control your privacy settings to manage who can see your information.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">How do I join groups or events?</div>
+            <div class="faq-answer">
+                You can browse available groups and events from the main navigation. Click on "Groups" or "Events" to see what's available. Some groups may require approval from the group admin.
+            </div>
+        </div>
+    </div>
+
+    <div class="faq-contact">
+        <p>Still have questions?</p>
+        <a href="mailto:support@macwin.com">Contact our support team</a>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('faqSearch');
+        const faqItems = document.querySelectorAll('.faq-item');
+        
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            
+            faqItems.forEach(item => {
+                const question = item.querySelector('.faq-question').textContent.toLowerCase();
+                const answer = item.querySelector('.faq-answer').textContent.toLowerCase();
+                
+                if (question.includes(searchTerm) || answer.includes(searchTerm)) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+    });
+</script>
+{% endblock %} 

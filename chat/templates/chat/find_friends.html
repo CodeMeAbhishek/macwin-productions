@@ -1,0 +1,572 @@
+{% extends 'chat/base.html' %}
+
+{% block title %}Find Friends | MacWin{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: #0fc2c0;
+        --primary-dark: #0d9e9c;
+        --primary-light: #e6f9f9;
+        --primary-lighter: #f0fcfc;
+        --border-color: #e2e8f0;
+        --text-color: #2d3748;
+        --secondary-color: #718096;
+    }
+
+    .find-friends-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 2rem;
+    }
+
+    .sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .nav-menu {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 1rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .nav-menu h3 {
+        color: var(--primary-color);
+        font-size: 1.125rem;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid var(--primary-light);
+    }
+
+    .nav-links {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .nav-link {
+        color: var(--text-color);
+        text-decoration: none;
+        padding: 0.875rem;
+        border-radius: 0.5rem;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 0.875rem;
+    }
+
+    .nav-link:hover {
+        background: var(--primary-light);
+        color: var(--primary-color);
+    }
+
+    .nav-link.active {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .main-content {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .results-section {
+        background: white;
+        border-radius: 1rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+
+    .results-header {
+        background: var(--primary-color);
+        color: white;
+        padding: 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .results-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .results-list {
+        padding: 1.5rem;
+    }
+
+    .user-card {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.25rem;
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 1rem;
+        margin-bottom: 1rem;
+        transition: all 0.2s;
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
+    }
+
+    .user-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .user-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(45deg, transparent, var(--primary-lighter));
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .user-card:hover::before {
+        opacity: 1;
+    }
+
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        text-decoration: none;
+        color: inherit;
+        flex: 1;
+        position: relative;
+        z-index: 2;
+    }
+
+    .profile-pic {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid var(--primary-color);
+    }
+
+    .user-details {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .user-name {
+        color: var(--text-color);
+        font-size: 1.125rem;
+        font-weight: 600;
+    }
+
+    .user-username {
+        color: var(--secondary-color);
+        font-size: 0.875rem;
+    }
+
+    .user-info-extra {
+        color: var(--secondary-color);
+        font-size: 0.875rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .action-btn {
+        padding: 0.75rem 1.25rem;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        position: relative;
+        z-index: 3;
+    }
+
+    .add-btn {
+        background: var(--primary-color);
+        color: white;
+        border: none;
+    }
+
+    .add-btn:hover {
+        background: var(--primary-dark);
+        transform: translateY(-1px);
+    }
+
+    .pending-btn {
+        background: var(--primary-light);
+        color: var(--primary-color);
+        border: none;
+        cursor: default;
+    }
+
+    .friend-actions {
+        display: flex;
+        gap: 0.5rem;
+        position: relative;
+        z-index: 2;
+    }
+
+    .chat-btn {
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        text-decoration: none;
+    }
+
+    .chat-btn:hover {
+        background: var(--primary-dark);
+        transform: translateY(-1px);
+    }
+
+    .view-profile-btn {
+        background: var(--primary-light);
+        color: var(--primary-color);
+        border: none;
+        text-decoration: none;
+    }
+
+    .view-profile-btn:hover {
+        background: #d4f3f3;
+        transform: translateY(-1px);
+    }
+
+    .no-results {
+        text-align: center;
+        padding: 3rem 1.5rem;
+        color: var(--secondary-color);
+    }
+
+    .no-results h3 {
+        font-size: 1.25rem;
+        color: var(--text-color);
+        margin-bottom: 0.5rem;
+    }
+
+    .no-results p {
+        font-size: 0.875rem;
+    }
+
+    .error-message {
+        color: #dc2626;
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+        padding: 0.75rem;
+        background: #fee2e2;
+        border-radius: 0.5rem;
+    }
+
+    .profile-icon {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 0.5rem;
+        border-radius: 0.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+    }
+
+    .message-btn {
+        background: var(--primary-color);
+        color: white;
+        border: none;
+    }
+
+    .message-btn:hover {
+        background: var(--primary-dark);
+        transform: translateY(-1px);
+    }
+
+    @media (max-width: 1024px) {
+        .find-friends-container {
+            grid-template-columns: 1fr;
+        }
+
+        .sidebar {
+            order: 2;
+        }
+
+        .main-content {
+            order: 1;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .find-friends-container {
+            grid-template-columns: 1fr;
+        }
+
+        .user-card {
+            flex-direction: column;
+            text-align: center;
+            gap: 1rem;
+        }
+
+        .user-info {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .friend-actions {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .action-btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="find-friends-container">
+    <div class="sidebar">
+        <div class="nav-menu">
+            <h3>Navigation</h3>
+            <div class="nav-links">
+                <a href="{% url 'profile' %}" class="nav-link">📝 My Profile</a>
+                <a href="{% url 'friends' %}" class="nav-link">👥 My Friends</a>
+                <a href="{% url 'find_friends' %}" class="nav-link active">🔍 Find Friends</a>
+                <a href="{% url 'privacy_settings' %}" class="nav-link">🔒 Privacy Settings</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="results-section">
+            <div class="results-header">
+                <h2 class="results-title">
+                    <span class="profile-icon">🔍</span>
+                    {% if query %}
+                        Search Results for "{{ query }}"
+                    {% else %}
+                        Discover New Friends
+                    {% endif %}
+                </h2>
+            </div>
+
+            <div class="results-list">
+                {% if results %}
+                    {% for user in results %}
+                        <div class="user-card" data-profile-url="{% url 'user_profile' user.id %}">
+                            <div class="user-info">
+                                {% if user.profile.profile_pic %}
+                                    <img src="{{ user.profile.profile_pic.url }}" alt="{{ user.username }}" class="profile-pic">
+                                {% else %}
+                                    <div class="profile-pic" style="background: var(--primary-light);"></div>
+                                {% endif %}
+                                <div class="user-details">
+                                    <div class="user-name">{{ user.profile.full_name }}</div>
+                                    <div class="user-username">@{{ user.username }}</div>
+                                    {% if user.profile.branch %}
+                                        <div class="user-info-extra">
+                                            📚 {{ user.profile.branch }} • 🎓 {{ user.profile.year }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="friend-actions" onclick="event.stopPropagation();">
+                                {% if user.friend_request_sent %}
+                                    <button class="action-btn pending-btn" disabled>
+                                        ⌛ Request Sent
+                                    </button>
+                                {% elif user.friend_request_received %}
+                                    <button class="action-btn add-btn accept-request-btn" data-request-id="{{ user.friend_request_received.id }}">
+                                        ✓ Accept Request
+                                    </button>
+                                {% else %}
+                                    <button class="action-btn add-btn send-request-btn" onclick="sendFriendRequest('{{ user.id }}', this)">
+                                        👋 Add Friend
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="no-results">
+                        <h3>No users found</h3>
+                        <p>Try searching with a different name or username.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function sendFriendRequest(userId, button) {
+        const form = button.closest('form');
+        const csrfToken = form.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        fetch(`/send-request/${userId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'Content-Type': 'application/json',
+            },
+            credentials: 'same-origin'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Update the button to show "Request Sent"
+                const userActions = button.closest('.friend-actions');
+                userActions.innerHTML = `
+                    <button class="action-btn pending-btn" disabled>
+                        📨 Request Sent
+                    </button>
+                `;
+                
+                // Show a temporary success message
+                const messageDiv = document.createElement('div');
+                messageDiv.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: var(--primary-color);
+                    color: white;
+                    padding: 1rem;
+                    border-radius: 0.5rem;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                    z-index: 1000;
+                    animation: slideIn 0.3s ease-out;
+                `;
+                messageDiv.textContent = '✓ Friend request sent!';
+                document.body.appendChild(messageDiv);
+                
+                // Remove the message after 3 seconds
+                setTimeout(() => {
+                    messageDiv.style.animation = 'slideOut 0.3s ease-in';
+                    setTimeout(() => messageDiv.remove(), 3000);
+                }, 3000);
+            } else {
+                alert(data.error || 'Failed to send friend request');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while sending the friend request');
+        });
+    }
+
+    // Add CSS animations
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+    `;
+    document.head.appendChild(style);
+
+    function acceptFriendRequest(requestId) {
+        fetch(`/accept-request/${requestId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json',
+            },
+            credentials: 'same-origin'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Update the buttons to show chat and view profile options
+                const userActions = document.querySelector(`[data-user-id="${requestId}"] .friend-actions`);
+                userActions.innerHTML = `
+                    <a href="/chat/${requestId}/" class="action-btn chat-btn">
+                        💬 Chat
+                    </a>
+                    <a href="/user/${requestId}/" class="action-btn view-profile-btn">
+                        👤 View Profile
+                    </a>
+                `;
+                
+                // Show success message
+                const messageDiv = document.createElement('div');
+                messageDiv.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: var(--primary-color);
+                    color: white;
+                    padding: 1rem;
+                    border-radius: 0.5rem;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                    z-index: 1000;
+                    animation: slideIn 0.3s ease-out;
+                `;
+                messageDiv.textContent = '✓ Friend request accepted!';
+                document.body.appendChild(messageDiv);
+                
+                setTimeout(() => {
+                    messageDiv.style.animation = 'slideOut 0.3s ease-in';
+                    setTimeout(() => messageDiv.remove(), 300);
+                }, 3000);
+            } else {
+                alert(data.error || 'Failed to accept friend request');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while accepting the friend request');
+        });
+    }
+
+    // Update all friend request forms to use AJAX
+    document.addEventListener('DOMContentLoaded', function() {
+        const friendRequestForms = document.querySelectorAll('form[action^="/send-request/"]');
+        friendRequestForms.forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const userId = this.action.split('/').slice(-2)[0];
+                const button = this.querySelector('button');
+                sendFriendRequest(userId, button);
+            });
+        });
+    });
+
+    // Prevent button clicks from triggering card click
+    document.addEventListener('DOMContentLoaded', function() {
+        const buttons = document.querySelectorAll('.action-btn');
+        buttons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        });
+    });
+
+    // Add click handler for profile cards
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.user-card').forEach(card => {
+            card.addEventListener('click', function() {
+                window.location.href = this.dataset.profileUrl;
+            });
+        });
+    });
+</script>
+{% endblock %} 

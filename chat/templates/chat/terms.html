@@ -1,0 +1,279 @@
+{% extends 'chat/base.html' %}
+
+{% block title %}Terms of Service | MacWin{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: #0fc2c0;
+        --primary-dark: #0d9e9c;
+        --primary-light: #e6f9f9;
+        --primary-lighter: #f0fcfc;
+        --border-color: #e2e8f0;
+        --text-color: #2d3748;
+        --secondary-color: #718096;
+    }
+
+    .terms-container {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 1.5rem;
+    }
+
+    .terms-header {
+        text-align: center;
+        margin-bottom: 3rem;
+        padding: 2rem;
+        background: white;
+        border-radius: 1rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .terms-header h1 {
+        color: var(--primary-color);
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+    }
+
+    .terms-header h1::before {
+        content: "📜";
+        font-size: 2rem;
+    }
+
+    .terms-header p {
+        color: var(--secondary-color);
+        font-size: 1.125rem;
+        max-width: 600px;
+        margin: 0 auto;
+        line-height: 1.6;
+    }
+
+    .terms-section {
+        background: white;
+        padding: 2rem;
+        border-radius: 1rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        margin-bottom: 2rem;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .terms-section:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .terms-section h3 {
+        color: var(--primary-color);
+        font-size: 1.5rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        border-bottom: 2px solid var(--primary-light);
+        padding-bottom: 1rem;
+    }
+
+    .terms-section h3::before {
+        font-size: 1.5rem;
+    }
+
+    .terms-section:nth-child(2) h3::before { content: "✅"; }
+    .terms-section:nth-child(3) h3::before { content: "👥"; }
+    .terms-section:nth-child(4) h3::before { content: "🔒"; }
+    .terms-section:nth-child(5) h3::before { content: "📝"; }
+    .terms-section:nth-child(6) h3::before { content: "🔄"; }
+
+    .terms-section p {
+        color: var(--text-color);
+        line-height: 1.8;
+        margin-bottom: 1.5rem;
+        font-size: 1rem;
+    }
+
+    .terms-section ul {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 1.5rem 0;
+    }
+
+    .terms-section li {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+        color: var(--text-color);
+        padding: 0.75rem 1rem;
+        background: var(--primary-lighter);
+        border-radius: 0.5rem;
+        transition: transform 0.2s;
+    }
+
+    .terms-section li:hover {
+        transform: translateX(5px);
+    }
+
+    .terms-section li::before {
+        content: "✓";
+        color: var(--primary-color);
+        font-weight: bold;
+    }
+
+    .terms-note {
+        background: var(--primary-light);
+        padding: 1.5rem;
+        border-radius: 0.75rem;
+        margin: 2rem 0;
+        border-left: 4px solid var(--primary-color);
+        position: relative;
+    }
+
+    .terms-note::before {
+        content: "ℹ️";
+        position: absolute;
+        left: -12px;
+        top: -12px;
+        background: white;
+        padding: 0.5rem;
+        border-radius: 50%;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .terms-note p {
+        color: var(--text-color);
+        margin: 0;
+        font-size: 0.9375rem;
+    }
+
+    .terms-contact {
+        margin-top: 4rem;
+        text-align: center;
+        background: white;
+        padding: 2rem;
+        border-radius: 1rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .terms-contact p {
+        color: var(--text-color);
+        margin-bottom: 1rem;
+    }
+
+    .terms-contact a {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 500;
+        padding: 0.75rem 1.5rem;
+        background: var(--primary-light);
+        border-radius: 0.5rem;
+        transition: all 0.2s;
+    }
+
+    .terms-contact a::before {
+        content: "✉️";
+    }
+
+    .terms-contact a:hover {
+        background: var(--primary-color);
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    @media (max-width: 768px) {
+        .terms-container {
+            padding: 1rem;
+            margin: 1rem auto;
+        }
+
+        .terms-header {
+            padding: 1.5rem;
+        }
+
+        .terms-header h1 {
+            font-size: 2rem;
+        }
+
+        .terms-section {
+            padding: 1.5rem;
+        }
+
+        .terms-section li {
+            padding: 0.5rem 0.75rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="terms-container">
+    <div class="terms-header">
+        <h1>Terms of Service</h1>
+        <p>
+            Please read these terms carefully before using MacWin. By accessing or using our platform, you agree to be bound by these terms.
+        </p>
+    </div>
+
+    <div class="terms-section">
+        <h3>Acceptance of Terms</h3>
+        <p>
+            By accessing and using MacWin, you agree to be bound by these Terms of Service and all applicable laws and regulations. If you do not agree with any of these terms, you are prohibited from using or accessing this platform.
+        </p>
+    </div>
+
+    <div class="terms-section">
+        <h3>User Conduct</h3>
+        <p>Users must not engage in any of the following activities:</p>
+        <ul>
+            <li>Post inappropriate, offensive, or harmful content</li>
+            <li>Harass, bully, or intimidate other users</li>
+            <li>Share false or misleading information</li>
+            <li>Violate any applicable laws or regulations</li>
+            <li>Attempt to gain unauthorized access to other accounts</li>
+            <li>Use the platform for commercial purposes without permission</li>
+        </ul>
+    </div>
+
+    <div class="terms-section">
+        <h3>Privacy</h3>
+        <p>
+            Your privacy is important to us. We are committed to protecting your personal information and ensuring your data is handled securely. Please review our Privacy Policy to understand how we collect, use, and protect your information.
+        </p>
+        <div class="terms-note">
+            <p>
+                We may update our privacy practices from time to time. Any changes will be posted on this page, and your continued use of the platform constitutes acceptance of these changes.
+            </p>
+        </div>
+    </div>
+
+    <div class="terms-section">
+        <h3>Content Ownership</h3>
+        <p>
+            Users retain ownership of their content but grant MacWin a license to use, store, and display the content on our platform. This license allows us to:
+        </p>
+        <ul>
+            <li>Host, store, and display your content</li>
+            <li>Make your content available to other users</li>
+            <li>Use your content for platform improvements</li>
+            <li>Back up and protect your content</li>
+        </ul>
+    </div>
+
+    <div class="terms-section">
+        <h3>Platform Modifications</h3>
+        <p>
+            We reserve the right to modify or discontinue any part of the platform without notice. We are not liable for any modification, suspension, or discontinuance of the platform.
+        </p>
+    </div>
+
+    <div class="terms-contact">
+        <p>Have questions about our Terms of Service?</p>
+        <a href="mailto:legal@macwin.com">Contact Our Legal Team</a>
+    </div>
+</div>
+{% endblock %} 
