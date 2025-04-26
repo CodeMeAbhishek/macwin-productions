@@ -21,7 +21,7 @@ SECRET_KEY = 'django-insecure-s4k7!i9x_=zt+yv9rb8p5dv9u&!6$#zdn=8jco0_c)lha(@=c3
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", "False") == "True"
-ALLOWED_HOSTS = ['macwin-chat.onrender.com']
+ALLOWED_HOSTS = ['unisphere.onrender.com']
 
 # Application definition
 INSTALLED_APPS = [
@@ -129,11 +129,21 @@ EMAIL_USE_LOCALTIME = True
 EMAIL_SUBJECT_PREFIX = ''
 
 # CSRF Settings
-CSRF_TRUSTED_ORIGINS = ['https://macwin-chat.onrender.com']
+CSRF_TRUSTED_ORIGINS = ['https://unisphere.onrender.com']
 
 # Channels
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels.layers.InMemoryChannelLayer"
-    },
-}
+if os.getenv("REDIS_URL"):
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels_redis.core.RedisChannelLayer",
+            "CONFIG": {
+                "hosts": [os.getenv("REDIS_URL")],
+            },
+        },
+    }
+else:
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels.layers.InMemoryChannelLayer"
+        },
+    }
