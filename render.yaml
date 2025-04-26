@@ -18,6 +18,10 @@ services:
         value: shyinenuv@gmail.com
       - key: EMAIL_HOST_PASSWORD
         value: izjf qawk muqb rymg
+    disk:
+      name: media
+      mountPath: /opt/render/project/src/media
+      sizeGB: 1
     plan: free
 
   - type: redis
