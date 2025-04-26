@@ -125,8 +125,10 @@ def register_view(request):
             username = form.cleaned_data['username']
             password = form.cleaned_data['password']
 
-            if not email.endswith('@gmail.com'):
-                form.add_error('email', 'Must be a @gmail.com email')
+            allowed_domains = ['nuv.ac.in', 'gmail.com', 'outlook.com']
+            email_domain = email.split('@')[-1]
+            if email_domain not in allowed_domains:
+                form.add_error('email', 'Registration is only allowed for @nuv.ac.in, @gmail.com, or @outlook.com email addresses.')
             elif User.objects.filter(email=email).exists():
                 form.add_error('email', 'This email is already registered.')
             elif User.objects.filter(username=username).exists():
