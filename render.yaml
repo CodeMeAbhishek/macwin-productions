@@ -9,12 +9,14 @@ services:
       python manage.py collectstatic --no-input
       python manage.py migrate
       echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('admin', 'admin@example.com', 'admin123') if not User.objects.filter(username='admin').exists() else None" | python manage.py shell
-    startCommand: daphne -b 0.0.0.0 -p $PORT core.asgi:application
+    startCommand: |
+      export DJANGO_SETTINGS_MODULE=core.settings
+      daphne -b 0.0.0.0 -p $PORT core.asgi:application
     envVars:
       - key: DEBUG
         value: False
       - key: SECRET_KEY
-        generateValue: true
+        value: django-insecure-1ah2!k7#41a8&7n56$u3p2!5)k)f^2kq^9apa^t1t28b
       - key: EMAIL_HOST_USER
         value: shyinenuv@gmail.com
       - key: EMAIL_HOST_PASSWORD
@@ -28,10 +30,7 @@ services:
       - key: DJANGO_SETTINGS_MODULE
         value: core.settings
       - key: REDIS_URL
-        fromService:
-          name: unisphere-redis
-          type: redis
-          property: connectionString
+        value: redis://red-d064riuibrs73e7q6u0:6379
     disk:
       name: media
       mountPath: /opt/render/project/src/media
