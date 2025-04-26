@@ -281,76 +281,47 @@
 
     <div class="chat-main">
         <div class="chat-header">
-            <h2>Chat with {{ friend.profile.full_name }}</h2>
-            <a href="{% url 'friends' %}">← Back to Friends</a>
+            <h2>Chat with {{ friend.username }}</h2>
+            <a href="{% url 'chat:friends' %}">← Back to Friends</a>
         </div>
 
-        <div class="chat-messages" id="chat-log">
-            {% for msg in chat_messages %}
-                <div class="message {% if msg.sender == request.user %}from-me{% else %}from-them{% endif %}">
-                    <div>{{ msg.content }}</div>
-                    <small>{{ msg.timestamp|date:"H:i" }}{% if msg.sender == request.user and forloop.last and msg.is_read %} ✓ Seen{% endif %}</small>
+        <div class="chat-messages" id="chat-messages">
+            {% for message in messages %}
+                <div class="message {% if message.sender == request.user %}from-me{% else %}from-them{% endif %}">
+                    {{ message.content }}
+                    <small>{{ message.timestamp|date:"g:i A" }}</small>
                 </div>
             {% endfor %}
         </div>
 
         <div class="chat-input-container">
-            <input type="text" class="chat-input-field" id="chat-message-input" placeholder="Type your message..." />
-            <button class="send-button" id="chat-message-submit">Send</button>
+            <input type="text" id="chat-message-input" class="chat-input" placeholder="Type your message...">
+            <button id="chat-message-submit" class="send-button">Send</button>
         </div>
     </div>
 </div>
 
 <script>
     const roomName = "{{ room_name }}";
-    const senderId = "{{ request.user.id }}";
-    const receiverId = "{{ friend.id }}";
-
+    const currentUser = "{{ request.user.id }}";
+    const friendId = "{{ friend.id }}";
+    
     const chatSocket = new WebSocket(
-        'ws://' + window.location.host + '/ws/chat/' + roomName + '/'
+        'wss://' + window.location.host + 
+        '/ws/chat/' + roomName + '/'
     );
 
     chatSocket.onmessage = function(e) {
         const data = JSON.parse(e.data);
-        
-        if (data.type === 'read_receipt') {
-            const messages = document.querySelectorAll('.message');
-            const lastMessage = messages[messages.length - 1];
-            if (lastMessage && lastMessage.classList.contains('from-me')) {
-                const timeElement = lastMessage.querySelector('small');
-                if (timeElement && !timeElement.textContent.includes('Seen')) {
-                    timeElement.textContent = timeElement.textContent + ' ✓ Seen';
-                }
-            }
-            return;
-        }
-
-        const msgDiv = document.createElement('div');
-        msgDiv.classList.add('message');
-        
-        const isFromMe = data.sender === senderId;
-        msgDiv.classList.add(isFromMe ? 'from-me' : 'from-them');
-
-        const messageText = document.createElement('div');
-        messageText.textContent = data.message;
-        
-        const timestamp = document.createElement('small');
-        timestamp.textContent = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-        
-        msgDiv.appendChild(messageText);
-        msgDiv.appendChild(timestamp);
-
-        const chatLog = document.getElementById('chat-log');
-        chatLog.appendChild(msgDiv);
-        chatLog.scrollTop = chatLog.scrollHeight;
-
-        // If message is from other user, send read receipt
-        if (!isFromMe) {
-            chatSocket.send(JSON.stringify({
-                'type': 'read_receipt',
-                'sender': senderId,
-                'receiver': receiverId
-            }));
+        if (data.type === 'chat_message') {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${data.sender === currentUser ? 'from-me' : 'from-them'}`;
+            messageDiv.innerHTML = `
+                ${data.message}
+                <small>${new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</small>
+            `;
+            document.querySelector('#chat-messages').appendChild(messageDiv);
+            messageDiv.scrollIntoView({ behavior: 'smooth' });
         }
     };
 
@@ -360,30 +331,29 @@
 
     document.querySelector('#chat-message-input').focus();
     document.querySelector('#chat-message-input').onkeyup = function(e) {
-        if (e.key === 'Enter' && !e.shiftKey) {
+        if (e.key === 'Enter') {
             document.querySelector('#chat-message-submit').click();
         }
     };
 
     document.querySelector('#chat-message-submit').onclick = function(e) {
         const messageInputDom = document.querySelector('#chat-message-input');
-        const message = messageInputDom.value.trim();
-        
-        if (message) {
+        const message = messageInputDom.value;
+        if (message.trim()) {
             chatSocket.send(JSON.stringify({
                 'type': 'chat_message',
                 'message': message,
-                'sender': senderId,
-                'receiver': receiverId
+                'sender': currentUser,
+                'receiver': friendId
             }));
             messageInputDom.value = '';
         }
     };
 
     // Auto-scroll to bottom on load
-    document.addEventListener('DOMContentLoaded', function() {
-        const chatLog = document.getElementById('chat-log');
-        chatLog.scrollTop = chatLog.scrollHeight;
-    });
+    window.onload = function() {
+        const messages = document.querySelector('#chat-messages');
+        messages.scrollTop = messages.scrollHeight;
+    };
 </script>
 {% endblock %}

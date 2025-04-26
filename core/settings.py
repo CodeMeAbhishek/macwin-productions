@@ -142,22 +142,18 @@ EMAIL_SUBJECT_PREFIX = ''
 # CSRF Settings
 CSRF_TRUSTED_ORIGINS = ['https://unisphere-esms.onrender.com']
 
-# Channels
-if os.getenv("REDIS_URL"):
-    CHANNEL_LAYERS = {
-        "default": {
-            "BACKEND": "channels_redis.core.RedisChannelLayer",
-            "CONFIG": {
-                "hosts": [os.getenv("REDIS_URL")],
-            },
+# Channels Configuration
+ASGI_APPLICATION = 'core.asgi.application'
+
+# Channel Layers
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [os.environ.get('REDIS_URL', 'redis://localhost:6379')],
         },
-    }
-else:
-    CHANNEL_LAYERS = {
-        "default": {
-            "BACKEND": "channels.layers.InMemoryChannelLayer"
-        },
-    }
+    },
+}
 
 # Security Settings
 SECURE_SSL_REDIRECT = True
