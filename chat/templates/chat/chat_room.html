@@ -309,8 +309,13 @@
     const friendId = "{{ friend.id }}";
     
     // Create WebSocket connection
+    let ws_scheme = window.location.protocol === "https:" ? "wss" : "ws";
+    let ws_host = window.location.host;
+    // For local development, you might run Django on a different port (e.g., 8000)
+    // Optionally, you can set a different host for local dev if needed
+    // Example: if (window.location.hostname === "localhost") ws_host = "localhost:8000";
     const chatSocket = new WebSocket(
-        'ws://' + window.location.host + '/ws/chat/' + roomName + '/'
+        ws_scheme + '://' + ws_host + '/ws/chat/' + roomName + '/'
     );
 
     chatSocket.onmessage = function(e) {
