@@ -5,6 +5,7 @@ services:
     buildCommand: |
       python -m pip install --upgrade pip
       pip install -r requirements.txt
+      pip install dj-database-url
       python manage.py collectstatic --no-input
       python manage.py migrate
     startCommand: gunicorn core.asgi:application -k uvicorn.workers.UvicornWorker
