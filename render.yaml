@@ -21,6 +21,18 @@ services:
           property: connectionString
       - key: DJANGO_SETTINGS_MODULE
         value: core.settings
+      - key: EMAIL_HOST
+        value: smtp.gmail.com
+      - key: EMAIL_PORT
+        value: 587
+      - key: EMAIL_USE_TLS
+        value: True
+      - key: EMAIL_HOST_USER
+        value: your-email@gmail.com
+      - key: EMAIL_HOST_PASSWORD
+        value: your-app-password
+      - key: CSRF_TRUSTED_ORIGINS
+        value: https://unisphere-chau.onrender.com
     healthCheckPath: /
     autoDeploy: true
 
