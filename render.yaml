@@ -15,11 +15,6 @@ services:
         value: False
       - key: SECRET_KEY
         generateValue: true
-      - key: DATABASE_URL
-        fromService:
-          type: postgres
-          name: unisphere-db
-          property: connectionString
       - key: EMAIL_HOST_USER
         value: shyinenuv@gmail.com
       - key: EMAIL_HOST_PASSWORD
@@ -30,11 +25,6 @@ services:
         value: admin@example.com
       - key: DJANGO_SUPERUSER_PASSWORD
         value: admin123
-      - key: REDIS_URL
-        fromService:
-          type: redis
-          name: unisphere-redis
-          property: connectionString
     disk:
       name: media
       mountPath: /opt/render/project/src/media

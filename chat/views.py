@@ -485,37 +485,40 @@ def user_profile_view(request, user_id):
 
 @login_required
 def chat_with_friend(request, friend_id):
-    friend = User.objects.get(id=friend_id)
+    try:
+        friend = get_object_or_404(User, id=friend_id)
 
-    # Ensure they're friends
-    is_friend = FriendRequest.objects.filter(
-        Q(from_user=request.user, to_user=friend) |
-        Q(from_user=friend, to_user=request.user),
-        is_accepted=True
-    ).exists()
+        # Ensure they're friends
+        is_friend = FriendRequest.objects.filter(
+            Q(from_user=request.user, to_user=friend) |
+            Q(from_user=friend, to_user=request.user),
+            is_accepted=True
+        ).exists()
 
-    if not is_friend:
-        messages.error(request, "You are not friends with this user.")
-        return redirect('friends')
+        if not is_friend:
+            messages.error(request, "You are not friends with this user.")
+            return redirect('friends')
 
-    # Get chat history
-    messages_qs = Message.objects.filter(
-        Q(sender=request.user, receiver=friend) |
-        Q(sender=friend, receiver=request.user)
-    )
+        # Get chat history
+        messages_qs = Message.objects.filter(
+            Q(sender=request.user, receiver=friend) |
+            Q(sender=friend, receiver=request.user)
+        ).order_by('timestamp')
 
-    # Create a unique room name based on user IDs
-    room_name = f"{min(request.user.id, friend.id)}_{max(request.user.id, friend.id)}"
+        # Create a unique room name based on user IDs
+        room_name = f"{min(request.user.id, friend.id)}_{max(request.user.id, friend.id)}"
 
-    # Mark unread messages as read
-    Message.objects.filter(sender=friend, receiver=request.user, is_read=False).update(is_read=True)
+        # Mark unread messages as read
+        Message.objects.filter(sender=friend, receiver=request.user, is_read=False).update(is_read=True)
 
-
-    return render(request, 'chat/chat_room.html', {
-        'friend': friend,
-        'chat_messages': messages_qs,
-        'room_name': room_name
-    })
+        return render(request, 'chat/chat_room.html', {
+            'friend': friend,
+            'chat_messages': messages_qs,
+            'room_name': room_name
+        })
+    except Exception as e:
+        messages.error(request, "An error occurred while loading the chat. Please try again.")
+        return redirect('messages')
 
 def complete_profile_view(request, user_id):
     user = get_object_or_404(User, id=user_id)
