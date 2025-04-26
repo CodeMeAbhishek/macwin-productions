@@ -183,7 +183,7 @@ def verify_otp_view(request):
     try:
         record = EmailVerification.objects.get(email=email)
         if record and not record.is_expired():
-            time_left = (record.created_at + timedelta(minutes=10)) - timezone.now()
+            time_left = (record.created_at + timedelta(minutes=3)) - timezone.now()
             seconds_remaining = int(time_left.total_seconds())
         else:
             seconds_remaining = 0

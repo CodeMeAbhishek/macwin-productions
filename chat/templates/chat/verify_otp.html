@@ -61,7 +61,10 @@
         headers: {'X-CSRFToken': '{{ csrf_token }}'}
       }).then(res => {
         if (res.ok) {
-          location.reload(); // reload to get new timer
+          seconds = 180; // Reset timer to 3 minutes
+          resendBtn.style.display = 'none';
+          updateTimer();
+          timerText.innerText = "OTP resent! Check your email.";
         }
       });
     });
