@@ -487,6 +487,7 @@ def user_profile_view(request, user_id):
 def chat_with_friend(request, friend_id):
     try:
         friend = get_object_or_404(User, id=friend_id)
+        print(f"Found friend with ID {friend_id}: {friend.username}")
 
         # Ensure they're friends
         is_friend = FriendRequest.objects.filter(
@@ -494,8 +495,11 @@ def chat_with_friend(request, friend_id):
             Q(from_user=friend, to_user=request.user),
             is_accepted=True
         ).exists()
+        
+        print(f"Friendship status with {friend.username}: {is_friend}")
 
         if not is_friend:
+            print(f"No friendship found between {request.user.username} and {friend.username}")
             messages.error(request, "You are not friends with this user.")
             return redirect('friends')
 
@@ -505,11 +509,14 @@ def chat_with_friend(request, friend_id):
             Q(sender=friend, receiver=request.user)
         ).order_by('timestamp')
 
+        print(f"Found {messages_qs.count()} messages in chat history")
+
         # Create a unique room name based on user IDs
         room_name = f"{min(request.user.id, friend.id)}_{max(request.user.id, friend.id)}"
 
         # Mark unread messages as read
-        Message.objects.filter(sender=friend, receiver=request.user, is_read=False).update(is_read=True)
+        unread_count = Message.objects.filter(sender=friend, receiver=request.user, is_read=False).update(is_read=True)
+        print(f"Marked {unread_count} messages as read")
 
         return render(request, 'chat/chat_room.html', {
             'friend': friend,
@@ -517,6 +524,7 @@ def chat_with_friend(request, friend_id):
             'room_name': room_name
         })
     except Exception as e:
+        print(f"Error in chat_with_friend: {str(e)}")
         messages.error(request, "An error occurred while loading the chat. Please try again.")
         return redirect('messages')
 
