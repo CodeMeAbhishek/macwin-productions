@@ -289,7 +289,13 @@
             {% for message in chat_messages %}
                 <div class="message {% if message.sender == request.user %}from-me{% else %}from-them{% endif %}">
                     {{ message.content }}
-                    <small>{{ message.timestamp|date:"g:i A" }}</small>
+                    <small>
+                        {% if message.sender == request.user %}
+                            You: {{ message.timestamp|date:"g:i A" }}
+                        {% else %}
+                            {{ message.sender.username|slice:":1"|upper }}: {{ message.timestamp|date:"g:i A" }}
+                        {% endif %}
+                    </small>
                 </div>
             {% endfor %}
         </div>
