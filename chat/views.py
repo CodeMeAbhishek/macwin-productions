@@ -17,7 +17,8 @@ from django.views.decorators.http import require_POST
 from django.utils import timezone
 from datetime import timedelta
 from django.template.loader import render_to_string
-from .utils import get_user_friends, get_friends_with_unread_messages, generate_otp, send_otp_email
+from .utils import get_user_friends, get_friends_with_unread_messages
+from core.utils import generate_otp, send_otp_email
 import json
 
 def unread_notifications_count(request):
