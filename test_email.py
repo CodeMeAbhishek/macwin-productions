@@ -1,18 +1,20 @@
 import os
 import django
-from django.conf import settings
 from django.core.mail import send_mail
 
-# Setup Django environment
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'unisphere.settings')
+# Set Outlook SMTP credentials directly for testing
+os.environ['EMAIL_HOST_USER'] = 'shyinenuv@outlook.com'
+os.environ['EMAIL_HOST_PASSWORD'] = 'elhmbcjkbpfdbnnd'
+os.environ['DJANGO_SETTINGS_MODULE'] = 'core.settings'
+
 django.setup()
 
 try:
     result = send_mail(
         'Test Subject',
         'Test message body',
-        'official.riseaboveall@gmail.com',
-        ['official.riseaboveall@gmail.com'],
+        'shyinenuv@outlook.com',
+        ['shyinenuv@outlook.com'],
         fail_silently=False,
     )
     print(f"Email sent successfully! Result: {result}")
