@@ -1,5 +1,6 @@
 import resend
 from django.conf import settings
+import random
 
 def send_otp_email(email, otp):
     """
@@ -27,4 +28,7 @@ def send_otp_email(email, otp):
         return True
     except Exception as e:
         print(f"Error sending email: {e}")
-        return False 
+        return False
+
+def generate_otp(length=6):
+    return ''.join([str(random.randint(0, 9)) for _ in range(length)]) 
