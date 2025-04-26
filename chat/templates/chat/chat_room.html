@@ -282,11 +282,11 @@
     <div class="chat-main">
         <div class="chat-header">
             <h2>Chat with {{ friend.username }}</h2>
-            <a href="{% url 'chat:friends' %}">← Back to Friends</a>
+            <a href="{% url 'messages' %}">Back to Messages</a>
         </div>
 
         <div class="chat-messages" id="chat-messages">
-            {% for message in messages %}
+            {% for message in chat_messages %}
                 <div class="message {% if message.sender == request.user %}from-me{% else %}from-them{% endif %}">
                     {{ message.content }}
                     <small>{{ message.timestamp|date:"g:i A" }}</small>
@@ -295,33 +295,33 @@
         </div>
 
         <div class="chat-input-container">
-            <input type="text" id="chat-message-input" class="chat-input" placeholder="Type your message...">
-            <button id="chat-message-submit" class="send-button">Send</button>
+            <input type="text" id="chat-message-input" placeholder="Type your message...">
+            <button id="chat-message-submit">Send</button>
         </div>
     </div>
 </div>
+{% endblock %}
 
+{% block extra_js %}
 <script>
     const roomName = "{{ room_name }}";
     const currentUser = "{{ request.user.id }}";
     const friendId = "{{ friend.id }}";
     
+    // Create WebSocket connection
     const chatSocket = new WebSocket(
-        'wss://' + window.location.host + 
-        '/ws/chat/' + roomName + '/'
+        'ws://' + window.location.host + '/ws/chat/' + roomName + '/'
     );
 
     chatSocket.onmessage = function(e) {
         const data = JSON.parse(e.data);
         if (data.type === 'chat_message') {
+            const messages = document.querySelector('#chat-messages');
             const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${data.sender === currentUser ? 'from-me' : 'from-them'}`;
-            messageDiv.innerHTML = `
-                ${data.message}
-                <small>${new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</small>
-            `;
-            document.querySelector('#chat-messages').appendChild(messageDiv);
-            messageDiv.scrollIntoView({ behavior: 'smooth' });
+            messageDiv.className = 'message ' + (data.sender === currentUser ? 'from-me' : 'from-them');
+            messageDiv.innerHTML = data.message + '<small>Just now</small>';
+            messages.appendChild(messageDiv);
+            messages.scrollTop = messages.scrollHeight;
         }
     };
 
@@ -331,7 +331,7 @@
 
     document.querySelector('#chat-message-input').focus();
     document.querySelector('#chat-message-input').onkeyup = function(e) {
-        if (e.key === 'Enter') {
+        if (e.keyCode === 13) {  // enter key
             document.querySelector('#chat-message-submit').click();
         }
     };
@@ -350,10 +350,8 @@
         }
     };
 
-    // Auto-scroll to bottom on load
-    window.onload = function() {
-        const messages = document.querySelector('#chat-messages');
-        messages.scrollTop = messages.scrollHeight;
-    };
+    // Scroll to bottom on load
+    const messages = document.querySelector('#chat-messages');
+    messages.scrollTop = messages.scrollHeight;
 </script>
 {% endblock %}
