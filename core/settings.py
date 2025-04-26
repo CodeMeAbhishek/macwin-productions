@@ -21,7 +21,7 @@ SECRET_KEY = 'django-insecure-s4k7!i9x_=zt+yv9rb8p5dv9u&!6$#zdn=8jco0_c)lha(@=c3
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", "False") == "True"
-ALLOWED_HOSTS = ['unisphere.onrender.com']
+ALLOWED_HOSTS = ['unisphere-esms.onrender.com', 'localhost', '127.0.0.1']
 
 # Application definition
 INSTALLED_APPS = [
@@ -37,8 +37,8 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -129,7 +129,7 @@ EMAIL_USE_LOCALTIME = True
 EMAIL_SUBJECT_PREFIX = ''
 
 # CSRF Settings
-CSRF_TRUSTED_ORIGINS = ['https://unisphere.onrender.com']
+CSRF_TRUSTED_ORIGINS = ['https://unisphere-esms.onrender.com']
 
 # Channels
 if os.getenv("REDIS_URL"):
@@ -147,3 +147,10 @@ else:
             "BACKEND": "channels.layers.InMemoryChannelLayer"
         },
     }
+
+# Security Settings
+SECURE_SSL_REDIRECT = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
