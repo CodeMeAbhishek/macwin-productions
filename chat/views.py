@@ -926,3 +926,27 @@ def resend_otp_view(request):
     )
     send_otp_email(email, otp)
     return JsonResponse({'status': 'resent'})
+
+def get_friends_with_unread_messages(user):
+    """
+    Returns a list of friends with their unread message count and last message.
+    """
+    # Get all accepted friends
+    sent_requests = FriendRequest.objects.filter(from_user=user, is_accepted=True)
+    received_requests = FriendRequest.objects.filter(to_user=user, is_accepted=True)
+    friends = [req.to_user for req in sent_requests] + [req.from_user for req in received_requests]
+
+    friends_data = []
+    for friend in friends:
+        # Get unread messages from this friend to the user
+        unread_count = Message.objects.filter(sender=friend, receiver=user, is_read=False).count()
+        # Get the last message between user and friend
+        last_message = Message.objects.filter(
+            Q(sender=user, receiver=friend) | Q(sender=friend, receiver=user)
+        ).order_by('-timestamp').first()
+        friends_data.append({
+            'user': friend,
+            'unread_count': unread_count,
+            'last_message': last_message,
+        })
+    return friends_data
