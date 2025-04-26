@@ -9,27 +9,21 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
-
+import os
+import dj_database_url
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
-
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-s4k7!i9x_=zt+yv9rb8p5dv9u&!6$#zdn=8jco0_c)lha(@=c3'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
-
+DEBUG = os.getenv("DEBUG", "False") == "True"
+ALLOWED_HOSTS = ['macwin-chat.onrender.com']
 
 # Application definition
-
 INSTALLED_APPS = [
     'channels',
     'daphne',
@@ -43,6 +37,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -72,24 +67,14 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'core.wsgi.application'
-
 ASGI_APPLICATION = 'core.asgi.application'
 
-
 # Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(conn_max_age=600)
 }
 
-
 # Password validation
-# https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -105,53 +90,46 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
-# https://docs.djangoproject.com/en/5.2/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
 
+# Static files
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.2/howto/static-files/
-
-STATIC_URL = 'static/'
-
-# Media files (User uploaded files)
+# Media
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-LOGIN_URL = '/register/'  # send unauthenticated users here
-LOGIN_REDIRECT_URL = '/'  # after successful login
-LOGOUT_REDIRECT_URL = '/' # after logout
-
+# Authentication URLs
+LOGIN_URL = '/register/'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
 
 # Default primary key field type
-# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Email Configuration
-# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # Output emails to console for debug
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'official.riseaboveall@gmail.com'  # Your Gmail address
-EMAIL_HOST_PASSWORD = 'cfsy rjzh ogqt aslm'  # Your Gmail app password
-DEFAULT_FROM_EMAIL = 'official.riseaboveall@gmail.com'  # Your Gmail address
-EMAIL_TIMEOUT = 60  # Increased timeout to 60 seconds
-EMAIL_USE_SSL = False  # Use TLS instead of SSL
+EMAIL_HOST_USER = 'shyinenuv@gmail.com'
+EMAIL_HOST_PASSWORD = 'izjf qawk muqb rymg'
+DEFAULT_FROM_EMAIL = 'shyinenuv@gmail.com'
+EMAIL_TIMEOUT = 60
+EMAIL_USE_SSL = False
 
 # Additional security settings
 EMAIL_USE_LOCALTIME = True
 EMAIL_SUBJECT_PREFIX = ''
+
+# CSRF Settings
+CSRF_TRUSTED_ORIGINS = ['https://macwin-chat.onrender.com']
 
 # Channels
 CHANNEL_LAYERS = {
