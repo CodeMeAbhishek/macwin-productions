@@ -8,6 +8,7 @@ services:
       pip install dj-database-url
       python manage.py collectstatic --no-input
       python manage.py migrate
+      echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('admin', 'admin@example.com', 'admin123') if not User.objects.filter(username='admin').exists() else None" | python manage.py shell
     startCommand: gunicorn core.asgi:application -k uvicorn.workers.UvicornWorker
     envVars:
       - key: DEBUG
@@ -18,6 +19,12 @@ services:
         value: shyinenuv@gmail.com
       - key: EMAIL_HOST_PASSWORD
         value: izjf qawk muqb rymg
+      - key: DJANGO_SUPERUSER_USERNAME
+        value: admin
+      - key: DJANGO_SUPERUSER_EMAIL
+        value: admin@example.com
+      - key: DJANGO_SUPERUSER_PASSWORD
+        value: admin123
     disk:
       name: media
       mountPath: /opt/render/project/src/media
