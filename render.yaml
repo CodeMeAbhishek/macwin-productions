@@ -27,6 +27,11 @@ services:
         value: admin123
       - key: DJANGO_SETTINGS_MODULE
         value: core.settings
+      - key: REDIS_URL
+        fromService:
+          name: unisphere-redis
+          type: redis
+          property: connectionString
     disk:
       name: media
       mountPath: /opt/render/project/src/media
