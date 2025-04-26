@@ -2,7 +2,10 @@ services:
   - type: web
     name: unisphere
     env: python
-    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --no-input && python manage.py migrate
+    buildCommand: |
+      pip install -r requirements.txt
+      python manage.py collectstatic --no-input
+      python manage.py migrate
     startCommand: gunicorn core.asgi:application -k uvicorn.workers.UvicornWorker
     envVars:
       - key: DEBUG
