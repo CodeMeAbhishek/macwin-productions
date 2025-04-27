@@ -1,4 +1,5 @@
 import os
+print("Current working directory:", os.getcwd())
 import django
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
