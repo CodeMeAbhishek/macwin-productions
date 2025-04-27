@@ -320,18 +320,18 @@
     <div class="main-content">
         <div class="profile-header">
             <div class="profile-pic-container">
-                {% if other_user.profile.profile_pic %}
-                    <img src="{{ other_user.profile.profile_pic.url }}" alt="{{ other_user.username }}" class="profile-pic">
+                {% if profile.profile_pic %}
+                    <img src="{{ profile.profile_pic.url }}" alt="{{ other_user.username }}" class="profile-pic">
                 {% else %}
                     <div class="profile-pic" style="background: var(--primary-light);"></div>
                 {% endif %}
             </div>
-            <h1 class="profile-name">{{ other_user.profile.full_name }}</h1>
+            <h1 class="profile-name">{{ profile.full_name|default:other_user.username }}</h1>
             <div class="profile-username">@{{ other_user.username }}</div>
 
-            {% if other_user.profile.bio %}
+            {% if profile.bio %}
                 <div class="profile-bio">
-                    {{ other_user.profile.bio }}
+                    {{ profile.bio }}
                 </div>
             {% endif %}
 
@@ -366,22 +366,22 @@
             </div>
 
             <div class="profile-details">
-                {% if other_user.profile.branch %}
+                {% if profile.branch %}
                     <div class="detail-item">
                         <div class="detail-label">🎓 Branch</div>
-                        <div class="detail-value">{{ other_user.profile.branch }}</div>
+                        <div class="detail-value">{{ profile.branch }}</div>
                     </div>
                 {% endif %}
-                {% if other_user.profile.year %}
+                {% if profile.year %}
                     <div class="detail-item">
                         <div class="detail-label">📅 Year</div>
-                        <div class="detail-value">{{ other_user.profile.year }}</div>
+                        <div class="detail-value">{{ profile.year }}</div>
                     </div>
                 {% endif %}
-                {% if other_user.profile.relationship_status %}
+                {% if profile.relationship_status %}
                     <div class="detail-item">
                         <div class="detail-label">❤️ Relationship Status</div>
-                        <div class="detail-value">{{ other_user.profile.get_relationship_status_display }}</div>
+                        <div class="detail-value">{{ profile.get_relationship_status_display }}</div>
                     </div>
                 {% endif %}
             </div>

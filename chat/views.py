@@ -481,9 +481,20 @@ def user_profile_view(request, user_id):
         is_accepted=False
     ).first()
 
+    # Check if profile exists
+    try:
+        profile = other_user.profile
+    except Profile.DoesNotExist:
+        # If profile doesn't exist, redirect to complete profile page
+        if request.user == other_user:
+            return redirect('complete_profile', user_id=user_id)
+        else:
+            messages.error(request, "This user's profile is not complete yet.")
+            return redirect('index')
+
     context = {
         'other_user': other_user,
-        'profile': other_user.profile,
+        'profile': profile,
         'friends': user_friends,
         'is_friend': is_friend,
         'friend_request_sent': friend_request_sent is not None,
