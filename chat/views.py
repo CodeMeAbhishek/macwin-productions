@@ -549,13 +549,14 @@ def chat_with_friend(request, friend_id):
         messages.error(request, "An error occurred while loading the chat. Please try again.")
         return redirect('messages')
 
-@login_required
 def complete_profile_view(request, user_id):
+    if user_id != 0 and not request.user.is_authenticated:
+        messages.error(request, "You must be logged in to edit your profile.")
+        return redirect('login')
     if user_id == 0:  # New user completing profile
         if not all(key in request.session for key in ['verified_email', 'verified_username', 'verified_password']):
             messages.error(request, "Session expired. Please register again.")
             return redirect('register')
-        
         if request.method == 'POST':
             form = ProfileForm(request.POST, request.FILES)
             if form.is_valid():
@@ -565,17 +566,14 @@ def complete_profile_view(request, user_id):
                     email=request.session['verified_email'],
                     password=request.session['verified_password']
                 )
-                
                 # Create profile
                 profile = form.save(commit=False)
                 profile.user = user
                 profile.save()
-                
                 # Clean up session
                 request.session.pop('verified_email', None)
                 request.session.pop('verified_username', None)
                 request.session.pop('verified_password', None)
-                
                 messages.success(request, "Profile completed successfully. Please login.")
                 return redirect('login')
         else:
@@ -584,7 +582,6 @@ def complete_profile_view(request, user_id):
         if request.user.id != user_id and not request.user.is_staff:
             messages.error(request, "You don't have permission to edit this profile.")
             return redirect('home')
-        
         profile = get_object_or_404(Profile, user_id=user_id)
         if request.method == 'POST':
             form = ProfileForm(request.POST, request.FILES, instance=profile)
@@ -594,7 +591,6 @@ def complete_profile_view(request, user_id):
                 return redirect('profile', user_id=user_id)
         else:
             form = ProfileForm(instance=profile)
-    
     return render(request, 'chat/complete_profile.html', {
         'form': form,
         'user_id': user_id
