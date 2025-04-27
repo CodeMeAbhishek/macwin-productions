@@ -19,6 +19,7 @@ from datetime import timedelta
 from django.template.loader import render_to_string
 from core.utils import generate_otp, send_otp_email
 import json
+from django.utils.dateparse import parse_datetime
 
 def unread_notifications_count(request):
     if request.user.is_authenticated:
@@ -142,6 +143,7 @@ def register_view(request):
                 request.session['pending_email'] = email
                 request.session['pending_username'] = username
                 request.session['pending_password'] = password
+                request.session['otp_created_at'] = timezone.now().isoformat()
                 return redirect('verify_otp')
     else:
         form = RegistrationForm()
@@ -155,7 +157,7 @@ def verify_otp_view(request):
     if request.method == 'POST':
         form = OTPVerificationForm(request.POST, initial={'email': email})
         if form.is_valid():
-            otp_input = form.cleaned_data['otp']
+            otp_input = form.cleaned_otp
             try:
                 record = EmailVerification.objects.get(email=email)
                 if record.is_expired():
@@ -180,14 +182,20 @@ def verify_otp_view(request):
         form = OTPVerificationForm(initial={'email': email})
     
     # Calculate seconds remaining for the timer
-    try:
-        record = EmailVerification.objects.get(email=email)
-        if record and not record.is_expired():
-            time_left = (record.created_at + timedelta(minutes=3)) - timezone.now()
-            seconds_remaining = int(time_left.total_seconds())
-        else:
-            seconds_remaining = 0
-    except EmailVerification.DoesNotExist:
+    otp_created_at = request.session.get('otp_created_at')
+    if otp_created_at:
+        created_at = parse_datetime(otp_created_at)
+    else:
+        try:
+            record = EmailVerification.objects.get(email=email)
+            created_at = record.created_at
+        except EmailVerification.DoesNotExist:
+            created_at = None
+
+    if created_at:
+        time_left = (created_at + timedelta(minutes=3)) - timezone.now()
+        seconds_remaining = max(int(time_left.total_seconds()), 0)
+    else:
         seconds_remaining = 0
     
     return render(request, 'chat/verify_otp.html', {
