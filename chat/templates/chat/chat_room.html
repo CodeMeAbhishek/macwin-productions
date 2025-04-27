@@ -289,7 +289,7 @@
             {% for message in chat_messages %}
                 <div class="message {% if message.sender == request.user %}from-me{% else %}from-them{% endif %}">
                     {{ message.content }}
-                    <small>
+                    <small class="msg-time" data-timestamp="{{ message.timestamp|date:'c' }}">
                         {% if message.sender == request.user %}
                             You: {{ message.timestamp|date:"g:i A" }}
                         {% else %}
@@ -364,5 +364,15 @@
     // Scroll to bottom on load
     const messages = document.querySelector('#chat-messages');
     messages.scrollTop = messages.scrollHeight;
+
+    document.querySelectorAll('.msg-time').forEach(function(el) {
+        const utc = el.getAttribute('data-timestamp');
+        if (utc) {
+            const date = new Date(utc);
+            const options = { hour: 'numeric', minute: '2-digit', hour12: true };
+            let label = el.textContent.split(':')[0];
+            el.textContent = label + ': ' + date.toLocaleTimeString([], options);
+        }
+    });
 </script>
 {% endblock %}
