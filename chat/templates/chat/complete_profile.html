@@ -1,4 +1,5 @@
-{% extends 'chat/base.html' %}
+{% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Complete Your Profile | MacWin{% endblock %}
 
@@ -163,33 +164,36 @@
 {% endblock %}
 
 {% block content %}
-<div class="profile-container">
-    <div class="profile-card">
-        <div class="profile-header">
-            <h1>Complete Your Profile</h1>
-            <p>Help others get to know you better by filling out your profile information.</p>
-        </div>
-        
-        <form method="post" enctype="multipart/form-data" class="profile-form">
-            {% csrf_token %}
-            {% for field in form %}
-                <div class="form-group">
-                    {{ field.label_tag }}
-                    {{ field }}
-                    {% if field.errors %}
-                        <ul class="errorlist">
-                            {% for error in field.errors %}
-                                <li>{{ error }}</li>
-                            {% endfor %}
-                        </ul>
-                    {% endif %}
-                    {% if field.help_text %}
-                        <small class="help-text">{{ field.help_text }}</small>
-                    {% endif %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="text-center">
+                        {% if user_id == 0 %}
+                            Complete Your Profile
+                        {% else %}
+                            Update Your Profile
+                        {% endif %}
+                    </h3>
                 </div>
-            {% endfor %}
-            <button type="submit" class="submit-btn">Complete Profile</button>
-        </form>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        {{ form.as_p }}
+                        <div class="text-center mt-3">
+                            <button type="submit" class="btn btn-primary">
+                                {% if user_id == 0 %}
+                                    Complete Profile
+                                {% else %}
+                                    Update Profile
+                                {% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}

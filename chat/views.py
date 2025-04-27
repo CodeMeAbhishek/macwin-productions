@@ -166,16 +166,16 @@ def verify_otp_view(request):
                 elif record.otp != otp_input:
                     form.add_error('otp', "Invalid OTP")
                 else:
-                    # Create user now
-                    username = request.session['pending_username']
-                    password = request.session['pending_password']
-                    user = User.objects.create_user(
-                        username=username, email=email, password=password
-                    )
+                    # Store user data in session and redirect to complete profile
+                    request.session['verified_email'] = email
+                    request.session['verified_username'] = request.session['pending_username']
+                    request.session['verified_password'] = request.session['pending_password']
                     EmailVerification.objects.filter(email=email).delete()
-                    request.session.flush()
-                    messages.success(request, "Email verified. Please login.")
-                    return redirect('login')
+                    request.session.pop('pending_email', None)
+                    request.session.pop('pending_username', None)
+                    request.session.pop('pending_password', None)
+                    request.session.pop('otp_created_at', None)
+                    return redirect('complete_profile', user_id=0)  # 0 indicates new user
             except EmailVerification.DoesNotExist:
                 form.add_error(None, "Verification record not found.")
     else:
@@ -549,32 +549,56 @@ def chat_with_friend(request, friend_id):
         messages.error(request, "An error occurred while loading the chat. Please try again.")
         return redirect('messages')
 
+@login_required
 def complete_profile_view(request, user_id):
-    user = get_object_or_404(User, id=user_id)
-    
-    # If user already has a profile, redirect to index
-    try:
-        user.profile
-        return redirect('index')
-    except Profile.DoesNotExist:
-        pass
+    if user_id == 0:  # New user completing profile
+        if not all(key in request.session for key in ['verified_email', 'verified_username', 'verified_password']):
+            messages.error(request, "Session expired. Please register again.")
+            return redirect('register')
         
-    if request.method == 'POST':
-        form = ProfileCompletionForm(request.POST, request.FILES)
-        if form.is_valid():
-            profile = form.save(commit=False)
-            profile.user = user
-            profile.save()
-            
-            # Log the user in if they're not already logged in
-            if not request.user.is_authenticated:
-                login(request, user)
-            
-            messages.success(request, "Profile completed successfully!")
-            return redirect('index')
-    else:
-        form = ProfileCompletionForm()
-    return render(request, 'chat/complete_profile.html', {'form': form})
+        if request.method == 'POST':
+            form = ProfileForm(request.POST, request.FILES)
+            if form.is_valid():
+                # Create user first
+                user = User.objects.create_user(
+                    username=request.session['verified_username'],
+                    email=request.session['verified_email'],
+                    password=request.session['verified_password']
+                )
+                
+                # Create profile
+                profile = form.save(commit=False)
+                profile.user = user
+                profile.save()
+                
+                # Clean up session
+                request.session.pop('verified_email', None)
+                request.session.pop('verified_username', None)
+                request.session.pop('verified_password', None)
+                
+                messages.success(request, "Profile completed successfully. Please login.")
+                return redirect('login')
+        else:
+            form = ProfileForm()
+    else:  # Existing user updating profile
+        if request.user.id != user_id and not request.user.is_staff:
+            messages.error(request, "You don't have permission to edit this profile.")
+            return redirect('home')
+        
+        profile = get_object_or_404(Profile, user_id=user_id)
+        if request.method == 'POST':
+            form = ProfileForm(request.POST, request.FILES, instance=profile)
+            if form.is_valid():
+                form.save()
+                messages.success(request, "Profile updated successfully.")
+                return redirect('profile', user_id=user_id)
+        else:
+            form = ProfileForm(instance=profile)
+    
+    return render(request, 'chat/complete_profile.html', {
+        'form': form,
+        'user_id': user_id
+    })
 
 @login_required
 def like_post(request, post_id):
