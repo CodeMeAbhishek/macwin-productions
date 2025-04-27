@@ -157,7 +157,7 @@ def verify_otp_view(request):
     if request.method == 'POST':
         form = OTPVerificationForm(request.POST, initial={'email': email})
         if form.is_valid():
-            otp_input = form.cleaned_otp
+            otp_input = form.cleaned_data['otp']
             try:
                 record = EmailVerification.objects.get(email=email)
                 if record.is_expired():
