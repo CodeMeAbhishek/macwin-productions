@@ -19,5 +19,4 @@ class ChatConfig(AppConfig):
     name = 'chat'
 
     def ready(self):
-        import chat.signals
         post_migrate.connect(create_superuser, sender=self)
