@@ -424,10 +424,12 @@
 <script>
 function sendFriendRequest(userId, button) {
     button.disabled = true;
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
     fetch(`/send-request/${userId}/`, {
         method: 'POST',
         headers: {
-            'X-CSRFToken': '{{ csrf_token }}',
+            'X-CSRFToken': csrfToken,
             'Content-Type': 'application/json',
         },
         credentials: 'same-origin'
@@ -437,7 +439,7 @@ function sendFriendRequest(userId, button) {
         if (data.status === 'success') {
             // Update the friend actions section
             const friendActions = button.closest('.friend-actions');
-            const csrfToken = '{{ csrf_token }}';
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
             friendActions.innerHTML = `
                 <button class="action-btn pending-btn" disabled>
                     📨 Friend Request Sent
@@ -492,14 +494,13 @@ function acceptFriendRequest(requestId, button) {
 }
 
 function showNotification(message, type = 'success') {
-    const notif = document.createElement('div');
-    notif.className = `notification-message ${type}`;
-    notif.textContent = message;
-    document.body.appendChild(notif);
-
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    
     setTimeout(() => {
-        notif.style.animation = 'slideOut 0.3s ease-in';
-        setTimeout(() => notif.remove(), 300);
+        notification.remove();
     }, 3000);
 }
 
@@ -547,7 +548,7 @@ if (!document.querySelector('style[data-notifications]')) {
     const style = document.createElement('style');
     style.setAttribute('data-notifications', '');
     style.textContent = `
-        .notification-message {
+        .notification {
             position: fixed;
             top: 20px;
             right: 20px;
@@ -560,11 +561,11 @@ if (!document.querySelector('style[data-notifications]')) {
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
-        .notification-message.success {
+        .notification.success {
             background: var(--primary-color);
         }
 
-        .notification-message.error {
+        .notification.error {
             background: #dc2626;
         }
 
