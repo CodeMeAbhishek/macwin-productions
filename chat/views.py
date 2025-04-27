@@ -554,18 +554,25 @@ def complete_profile_view(request, user_id):
         messages.error(request, "You must be logged in to edit your profile.")
         return redirect('login')
     if user_id == 0:  # New user completing profile
+        print("[DEBUG] Session keys:", list(request.session.keys()))
         if not all(key in request.session for key in ['verified_email', 'verified_username', 'verified_password']):
+            print("[DEBUG] Session missing required keys for new user registration.")
             messages.error(request, "Session expired. Please register again.")
             return redirect('register')
+        print("[DEBUG] Session data:", request.session['verified_email'], request.session['verified_username'], request.session['verified_password'])
         if request.method == 'POST':
             form = ProfileForm(request.POST, request.FILES)
             if form.is_valid():
-                # Create user first
-                user = User.objects.create_user(
-                    username=request.session['verified_username'],
-                    email=request.session['verified_email'],
-                    password=request.session['verified_password']
-                )
+                try:
+                    user = User.objects.create_user(
+                        username=request.session['verified_username'],
+                        email=request.session['verified_email'],
+                        password=request.session['verified_password']
+                    )
+                except Exception as e:
+                    print("[ERROR] Error creating user:", e)
+                    messages.error(request, f"Error creating user: {e}")
+                    return redirect('register')
                 # Create profile
                 profile = form.save(commit=False)
                 profile.user = user
