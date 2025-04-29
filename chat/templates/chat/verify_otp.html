@@ -22,22 +22,24 @@
       font-size: 0.875rem;
       margin-top: 0.5rem;
     }
+    .expired-message {
+      color: #e53e3e;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
   <div class="card">
     <h2>Enter OTP sent to your email</h2>
+    {% if form.non_field_errors %}
+      <p class="expired-message">{{ form.non_field_errors.0 }}</p>
+    {% endif %}
     <p id="timer-text" style="color:#555; font-size: 0.9rem;"></p>
     <button id="resend-btn" style="display:none; margin-top: 1rem; background: #38b2ac;">Resend OTP</button>
     
-    <form method="post">
+    <form method="post" id="otp-form">
       {% csrf_token %}
       {{ form.email }}
-      {% if form.non_field_errors %}
-        <div class="error-message">
-          {{ form.non_field_errors.0 }}
-        </div>
-      {% endif %}
       <div class="form-group">
         <label for="{{ form.otp.id_for_label }}">Enter OTP</label>
         {{ form.otp }}
@@ -61,23 +63,36 @@
     const resendBtn = document.getElementById('resend-btn');
     const otpInput = document.getElementById('{{ form.otp.id_for_label }}');
     const submitBtn = document.getElementById('submit-btn');
+    const otpForm = document.getElementById('otp-form');
+    let timerInterval;
+
+    function handleExpiration() {
+      timerText.innerHTML = '<span class="expired-message">OTP expired. Please register again.</span>';
+      resendBtn.style.display = 'inline-block';
+      otpInput.disabled = true;
+      submitBtn.disabled = true;
+      clearInterval(timerInterval);
+    }
 
     function updateTimer() {
       if (seconds <= 0) {
-        timerText.innerText = "OTP expired.";
-        resendBtn.style.display = 'inline-block';
-        otpInput.disabled = true;
-        submitBtn.disabled = true;
+        handleExpiration();
         return;
       }
       const mins = Math.floor(seconds / 60);
       const secs = seconds % 60;
       timerText.innerText = `OTP expires in ${mins}:${secs < 10 ? '0' + secs : secs}`;
       seconds--;
-      setTimeout(updateTimer, 1000);
     }
 
-    updateTimer();
+    // Check if OTP is already expired from server-side
+    if (document.querySelector('.expired-message')) {
+      handleExpiration();
+    } else {
+      // Start timer only if not expired
+      updateTimer();
+      timerInterval = setInterval(updateTimer, 1000);
+    }
 
     resendBtn.addEventListener('click', () => {
       fetch("{% url 'resend_otp' %}", {
@@ -89,10 +104,18 @@
           resendBtn.style.display = 'none';
           otpInput.disabled = false;
           submitBtn.disabled = false;
+          otpInput.value = ''; // Clear the OTP input
+          if (timerInterval) clearInterval(timerInterval);
           updateTimer();
-          timerText.innerText = "OTP resent! Check your email.";
+          timerInterval = setInterval(updateTimer, 1000);
+          timerText.innerHTML = '<span style="color: #38b2ac;">OTP resent! Check your email.</span>';
         }
       });
+    });
+
+    // Clear interval when leaving the page
+    window.addEventListener('beforeunload', () => {
+      if (timerInterval) clearInterval(timerInterval);
     });
   </script>
 </body>

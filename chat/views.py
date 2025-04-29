@@ -152,6 +152,21 @@ def register_view(request):
 def verify_otp_view(request):
     email = request.session.get('pending_email')
     if not email:
+        messages.error(request, "Session expired. Please register again.")
+        return redirect('register')
+
+    try:
+        record = EmailVerification.objects.get(email=email)
+        if record.is_expired():
+            record.delete()
+            request.session.pop('pending_email', None)
+            request.session.pop('pending_username', None)
+            request.session.pop('pending_password', None)
+            request.session.pop('otp_created_at', None)
+            messages.error(request, "OTP expired. Please register again.")
+            return redirect('register')
+    except EmailVerification.DoesNotExist:
+        messages.error(request, "Verification record not found. Please register again.")
         return redirect('register')
 
     if request.method == 'POST':
@@ -159,11 +174,7 @@ def verify_otp_view(request):
         if form.is_valid():
             otp_input = form.cleaned_data['otp']
             try:
-                record = EmailVerification.objects.get(email=email)
-                if record.is_expired():
-                    form.add_error(None, "OTP expired. Please register again.")
-                    record.delete()
-                elif record.otp != otp_input:
+                if record.otp != otp_input:
                     form.add_error('otp', "Invalid OTP")
                 else:
                     # Store user data in session and redirect to complete profile
@@ -182,21 +193,8 @@ def verify_otp_view(request):
         form = OTPVerificationForm(initial={'email': email})
     
     # Calculate seconds remaining for the timer
-    otp_created_at = request.session.get('otp_created_at')
-    if otp_created_at:
-        created_at = parse_datetime(otp_created_at)
-    else:
-        try:
-            record = EmailVerification.objects.get(email=email)
-            created_at = record.created_at
-        except EmailVerification.DoesNotExist:
-            created_at = None
-
-    if created_at:
-        time_left = (created_at + timedelta(minutes=3)) - timezone.now()
-        seconds_remaining = max(int(time_left.total_seconds()), 0)
-    else:
-        seconds_remaining = 0
+    time_left = (record.created_at + timedelta(minutes=3)) - timezone.now()
+    seconds_remaining = max(int(time_left.total_seconds()), 0)
     
     return render(request, 'chat/verify_otp.html', {
         'form': form,
