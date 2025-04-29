@@ -559,55 +559,92 @@ def complete_profile_view(request, user_id):
             print("[DEBUG] Session missing required keys for new user registration.")
             messages.error(request, "Session expired. Please register again.")
             return redirect('register')
-        print("[DEBUG] Session data:", request.session['verified_email'], request.session['verified_username'], request.session['verified_password'])
+        
+        # Check if session data is empty
+        if not all([request.session['verified_email'], request.session['verified_username'], request.session['verified_password']]):
+            print("[DEBUG] Session data is empty")
+            messages.error(request, "Invalid session data. Please register again.")
+            return redirect('register')
+            
+        print("[DEBUG] Session data present and valid")
+        
         if request.method == 'POST':
-            form = ProfileCompletionForm(request.POST, request.FILES)
-            if form.is_valid():
-                try:
-                    # First create the user
-                    user = User.objects.create_user(
-                        username=request.session['verified_username'],
-                        email=request.session['verified_email'],
-                        password=request.session['verified_password']
-                    )
-                    # Then create the profile
-                    profile = form.save(commit=False)
-                    profile.user = user
+            try:
+                form = ProfileCompletionForm(request.POST, request.FILES)
+                print("[DEBUG] Form data:", request.POST)
+                if form.is_valid():
                     try:
-                        profile.save()
-                        # Clean up session
-                        request.session.pop('verified_email', None)
-                        request.session.pop('verified_username', None)
-                        request.session.pop('verified_password', None)
-                        messages.success(request, "Profile completed successfully. Please login.")
-                        return redirect('login')
+                        # Check if user already exists
+                        if User.objects.filter(email=request.session['verified_email']).exists():
+                            messages.error(request, "A user with this email already exists.")
+                            return redirect('register')
+                        if User.objects.filter(username=request.session['verified_username']).exists():
+                            messages.error(request, "This username is already taken.")
+                            return redirect('register')
+                            
+                        # First create the user
+                        user = User.objects.create_user(
+                            username=request.session['verified_username'],
+                            email=request.session['verified_email'],
+                            password=request.session['verified_password']
+                        )
+                        print("[DEBUG] User created successfully:", user.username)
+                        
+                        # Then create the profile
+                        profile = form.save(commit=False)
+                        profile.user = user
+                        try:
+                            profile.save()
+                            print("[DEBUG] Profile saved successfully")
+                            # Clean up session
+                            request.session.pop('verified_email', None)
+                            request.session.pop('verified_username', None)
+                            request.session.pop('verified_password', None)
+                            messages.success(request, "Profile completed successfully. Please login.")
+                            return redirect('login')
+                        except Exception as e:
+                            # If profile creation fails, delete the user and show error
+                            user.delete()
+                            print("[ERROR] Error creating profile:", str(e))
+                            messages.error(request, f"Error creating profile: {str(e)}")
+                            return redirect('register')
                     except Exception as e:
-                        # If profile creation fails, delete the user and show error
-                        user.delete()
-                        print("[ERROR] Error creating profile:", e)
-                        messages.error(request, "Error creating profile. Please try again.")
+                        print("[ERROR] Error creating user:", str(e))
+                        messages.error(request, f"Error creating user: {str(e)}")
                         return redirect('register')
-                except Exception as e:
-                    print("[ERROR] Error creating user:", e)
-                    messages.error(request, f"Error creating user: {e}")
-                    return redirect('register')
-            else:
-                print("[DEBUG] Form errors:", form.errors)
+                else:
+                    print("[DEBUG] Form validation errors:", form.errors)
+                    for field, errors in form.errors.items():
+                        for error in errors:
+                            messages.error(request, f"{field}: {error}")
+            except Exception as e:
+                print("[ERROR] Unexpected error in form processing:", str(e))
+                messages.error(request, "An unexpected error occurred. Please try again.")
+                return redirect('register')
         else:
             form = ProfileCompletionForm()
+            print("[DEBUG] Displaying empty form for new profile")
     else:  # Existing user updating profile
         if request.user.id != user_id and not request.user.is_staff:
             messages.error(request, "You don't have permission to edit this profile.")
             return redirect('home')
-        profile = get_object_or_404(Profile, user_id=user_id)
-        if request.method == 'POST':
-            form = ProfileForm(request.POST, request.FILES, instance=profile)
-            if form.is_valid():
-                form.save()
-                messages.success(request, "Profile updated successfully.")
-                return redirect('profile', user_id=user_id)
-        else:
-            form = ProfileForm(instance=profile)
+        try:
+            profile = get_object_or_404(Profile, user_id=user_id)
+            if request.method == 'POST':
+                form = ProfileForm(request.POST, request.FILES, instance=profile)
+                if form.is_valid():
+                    form.save()
+                    messages.success(request, "Profile updated successfully.")
+                    return redirect('profile', user_id=user_id)
+                else:
+                    print("[DEBUG] Form validation errors for existing user:", form.errors)
+            else:
+                form = ProfileForm(instance=profile)
+        except Exception as e:
+            print("[ERROR] Error handling existing profile:", str(e))
+            messages.error(request, "An error occurred while accessing your profile.")
+            return redirect('home')
+            
     return render(request, 'chat/complete_profile.html', {
         'form': form,
         'user_id': user_id
