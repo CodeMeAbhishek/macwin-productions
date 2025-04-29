@@ -17,6 +17,11 @@
       cursor: pointer; font-weight: bold;
     }
     button:hover { background: #145dbf; }
+    .error-message {
+      color: #e53e3e;
+      font-size: 0.875rem;
+      margin-top: 0.5rem;
+    }
   </style>
 </head>
 <body>
@@ -24,15 +29,27 @@
     <h2>Enter OTP sent to your email</h2>
     <p id="timer-text" style="color:#555; font-size: 0.9rem;"></p>
     <button id="resend-btn" style="display:none; margin-top: 1rem; background: #38b2ac;">Resend OTP</button>
+    
     <form method="post">
       {% csrf_token %}
       {{ form.email }}
+      {% if form.non_field_errors %}
+        <div class="error-message">
+          {{ form.non_field_errors.0 }}
+        </div>
+      {% endif %}
       <div class="form-group">
-        <label for="id_otp">Enter OTP</label>
-        <input type="text" name="otp" id="otp-input" maxlength="6" required>
+        <label for="{{ form.otp.id_for_label }}">Enter OTP</label>
+        {{ form.otp }}
+        {% if form.otp.errors %}
+          <div class="error-message">
+            {{ form.otp.errors.0 }}
+          </div>
+        {% endif %}
       </div>
       <button type="submit" id="submit-btn">Verify & Complete</button>
     </form>
+    
     <p style="margin-top: 1rem; font-size: 0.9rem;">
       Didn't get it? <a href="{% url 'register' %}">Register again</a>
     </p>
@@ -42,14 +59,15 @@
     let seconds = parseInt("{{ seconds_remaining|default:0 }}");
     const timerText = document.getElementById('timer-text');
     const resendBtn = document.getElementById('resend-btn');
-
+    const otpInput = document.getElementById('{{ form.otp.id_for_label }}');
+    const submitBtn = document.getElementById('submit-btn');
 
     function updateTimer() {
       if (seconds <= 0) {
         timerText.innerText = "OTP expired.";
         resendBtn.style.display = 'inline-block';
-        document.getElementById('otp-input').disabled = true;
-        document.getElementById('submit-btn').disabled = true;
+        otpInput.disabled = true;
+        submitBtn.disabled = true;
         return;
       }
       const mins = Math.floor(seconds / 60);
@@ -69,6 +87,8 @@
         if (res.ok) {
           seconds = 180; // Reset timer to 3 minutes
           resendBtn.style.display = 'none';
+          otpInput.disabled = false;
+          submitBtn.disabled = false;
           updateTimer();
           timerText.innerText = "OTP resent! Check your email.";
         }

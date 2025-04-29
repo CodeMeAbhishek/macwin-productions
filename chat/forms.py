@@ -107,4 +107,22 @@ class RegistrationForm(forms.Form):
 
 class OTPVerificationForm(forms.Form):
     email = forms.EmailField(widget=forms.HiddenInput())
-    otp = forms.CharField(label="Enter OTP")
+    otp = forms.CharField(
+        label="Enter OTP",
+        max_length=6,
+        min_length=6,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter 6-digit OTP',
+            'maxlength': '6',
+            'required': True,
+            'pattern': '[0-9]{6}',
+            'title': 'Please enter a valid 6-digit OTP'
+        })
+    )
+
+    def clean_otp(self):
+        otp = self.cleaned_data.get('otp')
+        if not otp.isdigit():
+            raise forms.ValidationError("OTP must contain only digits")
+        return otp
