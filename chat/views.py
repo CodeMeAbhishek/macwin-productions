@@ -561,30 +561,40 @@ def complete_profile_view(request, user_id):
             return redirect('register')
         print("[DEBUG] Session data:", request.session['verified_email'], request.session['verified_username'], request.session['verified_password'])
         if request.method == 'POST':
-            form = ProfileForm(request.POST, request.FILES)
+            form = ProfileCompletionForm(request.POST, request.FILES)
             if form.is_valid():
                 try:
+                    # First create the user
                     user = User.objects.create_user(
                         username=request.session['verified_username'],
                         email=request.session['verified_email'],
                         password=request.session['verified_password']
                     )
+                    # Then create the profile
+                    profile = form.save(commit=False)
+                    profile.user = user
+                    try:
+                        profile.save()
+                        # Clean up session
+                        request.session.pop('verified_email', None)
+                        request.session.pop('verified_username', None)
+                        request.session.pop('verified_password', None)
+                        messages.success(request, "Profile completed successfully. Please login.")
+                        return redirect('login')
+                    except Exception as e:
+                        # If profile creation fails, delete the user and show error
+                        user.delete()
+                        print("[ERROR] Error creating profile:", e)
+                        messages.error(request, "Error creating profile. Please try again.")
+                        return redirect('register')
                 except Exception as e:
                     print("[ERROR] Error creating user:", e)
                     messages.error(request, f"Error creating user: {e}")
                     return redirect('register')
-                # Create profile
-                profile = form.save(commit=False)
-                profile.user = user
-                profile.save()
-                # Clean up session
-                request.session.pop('verified_email', None)
-                request.session.pop('verified_username', None)
-                request.session.pop('verified_password', None)
-                messages.success(request, "Profile completed successfully. Please login.")
-                return redirect('login')
+            else:
+                print("[DEBUG] Form errors:", form.errors)
         else:
-            form = ProfileForm()
+            form = ProfileCompletionForm()
     else:  # Existing user updating profile
         if request.user.id != user_id and not request.user.is_staff:
             messages.error(request, "You don't have permission to edit this profile.")

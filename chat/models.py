@@ -22,8 +22,6 @@ class Profile(models.Model):
             MinValueValidator(1, message='College year must be at least 1'),
             MaxValueValidator(5, message='College year cannot be more than 5')
         ],
-        null=True,
-        blank=True
     )
     bio = models.TextField(blank=True)
     profile_pic = models.ImageField(upload_to='profiles/', blank=True, null=True)
