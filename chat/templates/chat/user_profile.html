@@ -1,4 +1,5 @@
 {% extends 'chat/base.html' %}
+{% load static %}
 
 {% block title %}{{ other_user.username }}'s Profile | MacWin{% endblock %}
 
@@ -316,6 +317,7 @@
 {% endblock %}
 
 {% block content %}
+{% csrf_token %}
 <div class="profile-container">
     <div class="main-content">
         <div class="profile-header">
@@ -340,24 +342,20 @@
                     <a href="{% url 'chat_with_friend' other_user.id %}" class="action-btn message-btn">
                         💬 Message
                     </a>
-                    <form action="{% url 'remove_friend' other_user.id %}" method="post" style="display: inline;">
-                        {% csrf_token %}
-                        <button type="submit" class="action-btn remove-btn">
-                            ❌ Remove Friend
-                        </button>
-                    </form>
+                    <button onclick="removeFriend('{{ other_user.id }}')" class="action-btn remove-btn">
+                        ❌ Remove Friend
+                    </button>
                 {% elif friend_request_sent %}
                     <button class="action-btn pending-btn" disabled>
                         📨 Friend Request Sent
                     </button>
-                    <form action="{% url 'cancel_request' other_user.id %}" method="post" style="display: inline;">
-                        {% csrf_token %}
-                        <button type="submit" class="action-btn remove-btn">
-                            ❌ Cancel Request
-                        </button>
-                    </form>
+                    <button onclick="cancelFriendRequest('{{ other_user.id }}')" class="action-btn remove-btn">
+                        ❌ Cancel Request
+                    </button>
                 {% elif friend_request_received %}
-                    <button class="action-btn accept-btn" onclick="acceptFriendRequest('{{ friend_request.id }}', this)">Accept Friend Request</button>
+                    <button class="action-btn accept-btn" onclick="acceptFriendRequest('{{ friend_request.id }}', this)">
+                        ✅ Accept Request
+                    </button>
                 {% else %}
                     <button onclick="sendFriendRequest('{{ other_user.id }}', this)" class="action-btn add-btn">
                         👋 Add Friend
@@ -422,75 +420,59 @@
 <div class="error-message"></div>
 
 <script>
-function sendFriendRequest(userId, button) {
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+async function sendFriendRequest(userId, button) {
     button.disabled = true;
-    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    const csrfToken = getCookie('csrftoken');
     
-    fetch(`/send-request/${userId}/`, {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': csrfToken,
-            'Content-Type': 'application/json',
-        },
-        credentials: 'same-origin'
-    })
-    .then(response => response.json())
-    .then(data => {
+    try {
+        const response = await fetch(`/send-request/${userId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'Content-Type': 'application/json',
+            },
+            credentials: 'same-origin'
+        });
+
+        const data = await response.json();
+        
         if (data.status === 'success') {
-            // Update the friend actions section
+            // Update button to show pending state
             const friendActions = button.closest('.friend-actions');
-            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
             friendActions.innerHTML = `
                 <button class="action-btn pending-btn" disabled>
                     📨 Friend Request Sent
                 </button>
-                <form action="/cancel-request/${userId}/" method="post" style="display: inline;">
-                    <input type="hidden" name="csrfmiddlewaretoken" value="${csrfToken}">
-                    <button type="submit" class="action-btn remove-btn">
-                        ❌ Cancel Request
-                    </button>
-                </form>
+                <button onclick="cancelFriendRequest('${userId}')" class="action-btn remove-btn">
+                    ❌ Cancel Request
+                </button>
             `;
             
-            // Show success message
             showNotification('👋 Friend request sent!');
         } else {
             button.disabled = false;
             showNotification(data.error || 'Failed to send friend request', 'error');
         }
-    })
-    .catch(error => {
+    } catch (error) {
         console.error('Error:', error);
         button.disabled = false;
         showNotification('An error occurred while sending the request', 'error');
-    });
-}
-
-function acceptFriendRequest(requestId, button) {
-    button.disabled = true;
-    fetch(`/accept-request/${requestId}/`, {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': '{{ csrf_token }}',
-        },
-    })
-    .then(response => {
-        if (response.ok) {
-            button.className = 'action-btn add-btn';
-            button.innerHTML = '✅ Accepted';
-        } else {
-            throw new Error('Failed to accept friend request');
-        }
-    })
-    .catch(error => {
-        button.disabled = false;
-        const errorMessage = document.querySelector('.error-message');
-        errorMessage.style.display = 'block';
-        errorMessage.textContent = error.message;
-        setTimeout(() => {
-            errorMessage.style.display = 'none';
-        }, 3000);
-    });
+    }
 }
 
 function showNotification(message, type = 'success') {
@@ -504,92 +486,30 @@ function showNotification(message, type = 'success') {
     }, 3000);
 }
 
-function cancelFriendRequest(event, form) {
-    event.preventDefault();
-    const userId = form.action.split('/').slice(-2)[0];
-    const csrfToken = form.querySelector('[name=csrfmiddlewaretoken]').value;
-
-    fetch(`/cancel-request/${userId}/`, {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': csrfToken,
-            'Content-Type': 'application/json',
-        },
-        credentials: 'same-origin'
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'success') {
-            // Update the friend actions section
-            const friendActions = form.closest('.friend-actions');
-            friendActions.innerHTML = `
-                <form action="/send-request/${userId}/" method="post" style="display: inline;">
-                    <input type="hidden" name="csrfmiddlewaretoken" value="${csrfToken}">
-                    <button type="submit" class="action-btn add-btn">
-                        👋 Add Friend
-                    </button>
-                </form>
-            `;
-            
-            // Show success message
-            showNotification('✕ Friend request cancelled');
-        } else {
-            showNotification(data.error || 'An error occurred', 'error');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showNotification('An error occurred while cancelling the request', 'error');
-    });
-}
-
-// Add CSS for notifications if not already present
-if (!document.querySelector('style[data-notifications]')) {
-    const style = document.createElement('style');
-    style.setAttribute('data-notifications', '');
-    style.textContent = `
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 1rem;
-            border-radius: 0.5rem;
-            color: white;
-            font-weight: 500;
-            z-index: 1000;
-            animation: slideIn 0.3s ease-out;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .notification.success {
-            background: var(--primary-color);
-        }
-
-        .notification.error {
-            background: #dc2626;
-        }
-
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-
-        @keyframes slideOut {
-            from { transform: translateX(0); opacity: 1; }
-            to { transform: translateX(100%); opacity: 0; }
-        }
-    `;
-    document.head.appendChild(style);
-}
-
-// Update all cancel request forms to use AJAX
-document.addEventListener('DOMContentLoaded', function() {
-    const cancelRequestForms = document.querySelectorAll('form[action^="/cancel-request/"]');
-    cancelRequestForms.forEach(form => {
-        form.addEventListener('submit', function(e) {
-            cancelFriendRequest(e, this);
-        });
-    });
-});
+// Add notification styles if not already present
+const style = document.createElement('style');
+style.textContent = `
+    .notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        background: var(--primary-color);
+        color: white;
+        z-index: 1000;
+        animation: slideIn 0.3s ease-out;
+    }
+    
+    .notification.error {
+        background: #dc2626;
+    }
+    
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+`;
+document.head.appendChild(style);
 </script>
 {% endblock %}
