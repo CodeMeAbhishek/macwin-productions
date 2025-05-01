@@ -20,6 +20,7 @@ from django.template.loader import render_to_string
 from core.utils import generate_otp, send_otp_email
 import json
 from django.utils.dateparse import parse_datetime
+from django.db import transaction
 
 def unread_notifications_count(request):
     if request.user.is_authenticated:
@@ -250,32 +251,57 @@ def logout_view(request):
 @login_required
 def send_friend_request(request, user_id):
     """Send a friend request to another user."""
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'error': 'Method not allowed'}, status=405)
+        
     try:
         to_user = User.objects.get(id=user_id)
-        if request.user != to_user:
-            friend_request, created = FriendRequest.objects.get_or_create(
-                from_user=request.user, 
-                to_user=to_user
+        
+        # Check if users are already friends
+        if FriendRequest.objects.filter(
+            (Q(from_user=request.user, to_user=to_user) |
+             Q(from_user=to_user, to_user=request.user)),
+            is_accepted=True
+        ).exists():
+            return JsonResponse(
+                {'status': 'error', 'error': 'You are already friends with this user'}, 
+                status=400
             )
-            if created:
-                # Create notification for friend request
-                Notification.objects.create(
-                    user=to_user,
-                    sender=request.user,
-                    notif_type='friend_request',
-                    message=f"{request.user.username} sent you a friend request."
-                )
-                return JsonResponse({'status': 'success', 'message': 'Friend request sent'})
-            else:
-                return JsonResponse(
-                    {'status': 'error', 'error': 'Friend request already sent'}, 
-                    status=400
-                )
-        else:
+            
+        # Check for existing pending requests in either direction
+        if FriendRequest.objects.filter(
+            (Q(from_user=request.user, to_user=to_user) |
+             Q(from_user=to_user, to_user=request.user)),
+            is_accepted=False
+        ).exists():
+            return JsonResponse(
+                {'status': 'error', 'error': 'A friend request already exists between you and this user'}, 
+                status=400
+            )
+            
+        if request.user == to_user:
             return JsonResponse(
                 {'status': 'error', 'error': 'You cannot send a friend request to yourself'}, 
                 status=400
             )
+            
+        # Create friend request with transaction to prevent race conditions
+        with transaction.atomic():
+            friend_request = FriendRequest.objects.create(
+                from_user=request.user, 
+                to_user=to_user
+            )
+            
+            # Create notification for friend request
+            Notification.objects.create(
+                user=to_user,
+                sender=request.user,
+                notif_type='friend_request',
+                message=f"{request.user.username} sent you a friend request."
+            )
+            
+        return JsonResponse({'status': 'success', 'message': 'Friend request sent'})
+            
     except User.DoesNotExist:
         return JsonResponse(
             {'status': 'error', 'error': 'User not found'}, 
@@ -305,36 +331,37 @@ def accept_friend_request(request, request_id):
         }, status=405)
         
     try:
-        # Get the notification first
-        notification = get_object_or_404(Notification, id=request_id, user=request.user)
-        
-        # Find and accept the friend request
-        friend_request = FriendRequest.objects.get(
-            from_user=notification.sender,
-            to_user=request.user,
-            is_accepted=False
-        )
-        
-        # Accept the request
-        friend_request.is_accepted = True
-        friend_request.save()
-        
-        # Delete any duplicate requests in the opposite direction
-        FriendRequest.objects.filter(
-            from_user=request.user,
-            to_user=notification.sender
-        ).delete()
-        
-        # Delete the notification instead of marking it as read
-        notification.delete()
-        
-        return JsonResponse({
-            'status': 'success',
-            'message': 'Friend request accepted',
-            'friend_id': notification.sender.id,
-            'friend_name': notification.sender.profile.full_name
-        })
-        
+        with transaction.atomic():
+            # Get the notification first
+            notification = get_object_or_404(Notification, id=request_id, user=request.user)
+            
+            # Find and accept the friend request
+            friend_request = FriendRequest.objects.select_for_update().get(
+                from_user=notification.sender,
+                to_user=request.user,
+                is_accepted=False
+            )
+            
+            # Accept the request
+            friend_request.is_accepted = True
+            friend_request.save()
+            
+            # Delete any duplicate requests in the opposite direction
+            FriendRequest.objects.filter(
+                from_user=request.user,
+                to_user=notification.sender
+            ).delete()
+            
+            # Delete the notification
+            notification.delete()
+            
+            return JsonResponse({
+                'status': 'success',
+                'message': 'Friend request accepted',
+                'friend_id': notification.sender.id,
+                'friend_name': notification.sender.profile.full_name
+            })
+            
     except (Notification.DoesNotExist, FriendRequest.DoesNotExist) as e:
         return JsonResponse({
             'status': 'error',

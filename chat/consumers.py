@@ -3,7 +3,7 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from django.contrib.auth.models import User
 from .models import Message
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -13,27 +13,36 @@ class ChatConsumer(AsyncWebsocketConsumer):
             await self.channel_layer.group_add(self.room_group_name, self.channel_name)
             await self.accept()
         except Exception as e:
-            await self.close(code=4000)  # Close with error code
+            print(f"WebSocket connection error: {str(e)}")
+            await self.close(code=4000)
 
     async def disconnect(self, close_code):
         try:
             await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
-        except Exception:
-            pass  # Ignore errors during disconnect
+        except Exception as e:
+            print(f"WebSocket disconnect error: {str(e)}")
 
     async def receive(self, text_data):
         try:
             data = json.loads(text_data)
             message_type = data.get('type', 'chat_message')
             
+            if not all(key in data for key in ['sender', 'receiver']):
+                await self.send_error("Missing required fields: sender and receiver")
+                return
+                
             if message_type == 'read_receipt':
                 await self.handle_read_receipt(data)
             else:
+                if 'message' not in data:
+                    await self.send_error("Message content is required")
+                    return
                 await self.handle_chat_message(data)
         except json.JSONDecodeError:
-            await self.send_error("Invalid message format")
+            await self.send_error("Invalid message format: Expected JSON")
         except Exception as e:
-            await self.send_error("An error occurred processing your message")
+            print(f"WebSocket receive error: {str(e)}")
+            await self.send_error(f"An error occurred processing your message: {str(e)}")
 
     async def handle_read_receipt(self, data):
         await self.channel_layer.group_send(
@@ -51,7 +60,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
         try:
             sender = await self.get_user(data['sender'])
             receiver = await self.get_user(data['receiver'])
-            message = data['message']
+            message = data['message'].strip()
+            
+            if not message:
+                await self.send_error("Message cannot be empty")
+                return
+                
+            if len(message) > 1000:  # Add reasonable message length limit
+                await self.send_error("Message is too long (maximum 1000 characters)")
+                return
             
             await self.save_message(sender, receiver, message)
             
@@ -64,9 +81,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     'receiver': data['receiver']
                 }
             )
-        except ObjectDoesNotExist:
+        except ObjectDoesNotExist as e:
             await self.send_error("User not found")
+        except ValidationError as e:
+            await self.send_error(str(e))
         except Exception as e:
+            print(f"Chat message error: {str(e)}")
             await self.send_error("Failed to send message")
 
     async def send_error(self, message):

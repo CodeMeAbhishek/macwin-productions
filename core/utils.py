@@ -1,15 +1,37 @@
 import resend
 from django.conf import settings
 import random
+import logging
+
+logger = logging.getLogger(__name__)
 
 def send_otp_email(email, otp):
     """
     Send OTP email using Resend API
+    
+    Args:
+        email (str): Recipient email address
+        otp (str): One-time password to send
+        
+    Returns:
+        bool: True if email was sent successfully, False otherwise
+        
+    Raises:
+        ValueError: If email or OTP is invalid
     """
+    if not email or not isinstance(email, str):
+        raise ValueError("Invalid email address")
+    if not otp or not isinstance(otp, str):
+        raise ValueError("Invalid OTP")
+        
     try:
+        if not settings.RESEND_API_KEY:
+            logger.error("RESEND_API_KEY not configured")
+            return False
+            
         resend.api_key = settings.RESEND_API_KEY
         
-        resend.Emails.send({
+        response = resend.Emails.send({
             "from": settings.DEFAULT_FROM_EMAIL,
             "to": email,
             "subject": "Your OTP Code",
@@ -25,9 +47,19 @@ def send_otp_email(email, otp):
                 </div>
             """
         })
-        return True
+        
+        if response and getattr(response, 'id', None):
+            logger.info(f"Email sent successfully to {email}")
+            return True
+        else:
+            logger.error(f"Failed to send email to {email}: No response ID")
+            return False
+            
+    except resend.ApiError as e:
+        logger.error(f"Resend API error sending email to {email}: {str(e)}")
+        return False
     except Exception as e:
-        print(f"Error sending email: {e}")
+        logger.error(f"Unexpected error sending email to {email}: {str(e)}")
         return False
 
 def generate_otp(length=6):

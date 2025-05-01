@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'chat',
     'cloudinary',
     'cloudinary_storage',
+    'django_extensions',
 ]
 
 MIDDLEWARE = [
@@ -73,7 +74,10 @@ ASGI_APPLICATION = 'core.asgi.application'
 
 # Database
 DATABASES = {
-    'default': dj_database_url.config(conn_max_age=600)
+    'default': dj_database_url.config(
+        default='sqlite:///db.sqlite3',
+        conn_max_age=600
+    )
 }
 
 # Password validation

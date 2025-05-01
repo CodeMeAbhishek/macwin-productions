@@ -1,11 +1,17 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator, FileExtensionValidator
+from django.core.exceptions import ValidationError
 import random
 from django.utils import timezone
 from datetime import timedelta
-from django.core.exceptions import ValidationError
 from django.db.models import Q
+
+def validate_file_size(value):
+    filesize = value.size
+    if filesize > 5 * 1024 * 1024:  # 5MB limit
+        raise ValidationError("The maximum file size that can be uploaded is 5MB")
+    return value
 
 class Profile(models.Model):
     RELATIONSHIP_CHOICES = [
@@ -27,7 +33,16 @@ class Profile(models.Model):
         default=1
     )
     bio = models.TextField(blank=True, default='')
-    profile_pic = models.ImageField(upload_to='profiles/', blank=True, null=True)
+    profile_pic = models.ImageField(
+        upload_to='profiles/', 
+        blank=True, 
+        null=True,
+        validators=[
+            FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'gif']),
+            validate_file_size
+        ],
+        help_text='Maximum file size: 5MB. Allowed formats: JPG, JPEG, PNG, GIF'
+    )
     relationship_status = models.CharField(max_length=1, choices=RELATIONSHIP_CHOICES, blank=True, default='')
 
     def clean(self):
@@ -37,6 +52,8 @@ class Profile(models.Model):
             raise ValidationError("Full name cannot exceed 100 characters.")
         if self.bio and len(self.bio) > 500:
             raise ValidationError("Bio cannot exceed 500 characters.")
+        if self.branch and len(self.branch) > 50:
+            raise ValidationError("Branch name cannot exceed 50 characters.")
 
     def save(self, *args, **kwargs):
         self.full_clean()
