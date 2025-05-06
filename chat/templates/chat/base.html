@@ -86,6 +86,7 @@
             border-radius: 0.75rem;
             box-shadow: 0 2px 4px rgba(15, 194, 192, 0.1);
             transition: all 0.2s ease;
+            position: relative;
         }
 
         .header-search:hover {
@@ -224,6 +225,9 @@
             margin: 2rem auto;
             padding: 0 1rem;
             width: 100%;
+            display: grid;
+            gap: 2rem;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
         }
 
         .footer {
@@ -280,16 +284,186 @@
             .header-container {
                 flex-direction: column;
                 gap: 1rem;
+                padding: 0.5rem;
             }
 
             .header-search-container {
+                margin: 0;
+                max-width: 100%;
+            }
+
+            .header-search {
+                flex-direction: column;
+                padding: 0.5rem;
+            }
+
+            .search-input {
                 width: 100%;
-                margin: 1rem 0;
+                padding: 1rem;
+                font-size: 16px;
+                border-radius: 0.5rem;
+            }
+
+            .search-btn {
+                width: 100%;
+                justify-content: center;
+                margin-top: 0.5rem;
+                padding: 1rem;
+            }
+
+            /* Add search overlay for mobile */
+            .search-overlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 999;
+            }
+
+            .search-overlay.active {
+                display: block;
+            }
+
+            /* Mobile search results */
+            .search-results {
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: white;
+                border-radius: 0 0 1rem 1rem;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                max-height: 60vh;
+                overflow-y: auto;
+                display: none;
+            }
+
+            .search-results.active {
+                display: block;
+            }
+
+            .search-result-item {
+                padding: 1rem;
+                border-bottom: 1px solid var(--border-color);
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+            }
+
+            .search-result-item:last-child {
+                border-bottom: none;
             }
 
             .header-links {
                 width: 100%;
-                justify-content: center;
+                flex-direction: column;
+                gap: 0.5rem;
+                order: 3;
+                display: none;
+            }
+
+            .header-links.active {
+                display: flex;
+            }
+
+            .nav-link {
+                width: 100%;
+                text-align: center;
+                padding: 1rem;
+            }
+
+            .logo {
+                order: 1;
+            }
+
+            .menu-toggle {
+                display: block;
+                position: absolute;
+                right: 1rem;
+                top: 1rem;
+                background: none;
+                border: none;
+                padding: 0.5rem;
+                cursor: pointer;
+                z-index: 1001;
+            }
+
+            .menu-toggle span {
+                display: block;
+                width: 24px;
+                height: 2px;
+                background: var(--text-color);
+                margin: 4px 0;
+                transition: all 0.3s ease;
+            }
+
+            .menu-toggle.active span:nth-child(1) {
+                transform: rotate(45deg) translate(5px, 5px);
+            }
+
+            .menu-toggle.active span:nth-child(2) {
+                opacity: 0;
+            }
+
+            .menu-toggle.active span:nth-child(3) {
+                transform: rotate(-45deg) translate(5px, -5px);
+            }
+
+            .main-container {
+                margin: 1rem auto;
+                padding: 0 0.5rem;
+                gap: 1rem;
+                grid-template-columns: 1fr;
+            }
+
+            /* Improve touch targets for mobile */
+            .nav-link,
+            .btn,
+            .search-btn,
+            .logout-btn,
+            button,
+            input[type="submit"] {
+                min-height: 44px;
+                padding: 0.75rem 1rem;
+                font-size: 1rem;
+            }
+
+            /* Increase spacing between interactive elements */
+            .form-group {
+                margin-bottom: 1.5rem;
+            }
+
+            input,
+            textarea,
+            select {
+                font-size: 16px; /* Prevent iOS zoom on focus */
+                padding: 0.75rem;
+            }
+
+            /* Improve tap targets spacing */
+            .header-links a,
+            .footer-links a {
+                padding: 0.75rem;
+                margin: 0.25rem 0;
+                display: inline-block;
+            }
+        }
+
+        /* Tablet specific adjustments */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .main-container {
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                padding: 0 1.5rem;
+            }
+        }
+
+        /* Ensure content is readable on larger screens */
+        @media (min-width: 1600px) {
+            .main-container {
+                max-width: 1400px;
             }
         }
     </style>
@@ -299,6 +473,11 @@
     <header class="header">
         <div class="header-container">
             <a href="{% url 'index' %}" class="logo">MacWin</a>
+            <button class="menu-toggle" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
             {% if user.is_authenticated %}
                 <div class="header-search-container">
                     <form method="get" action="{% url 'find_friends' %}" class="header-search">
@@ -365,7 +544,7 @@
                 <ul class="footer-links">
                     <li><a href="#">Twitter</a></li>
                     <li><a href="#">Facebook</a></li>
-                    <li><a href="#">Instagram</a></li>
+                    <li><a href="https://www.instagram.com/shyine_official/">Instagram</a></li>
                 </ul>
             </div>
         </div>
@@ -374,6 +553,88 @@
         </div>
     </footer>
 
-    {% block extra_js %}{% endblock %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Menu toggle functionality
+            const menuToggle = document.querySelector('.menu-toggle');
+            const headerLinks = document.querySelector('.header-links');
+            
+            if (menuToggle && headerLinks) {
+                menuToggle.addEventListener('click', function() {
+                    menuToggle.classList.toggle('active');
+                    headerLinks.classList.toggle('active');
+                });
+
+                // Close menu when clicking outside
+                document.addEventListener('click', function(event) {
+                    if (!headerLinks.contains(event.target) && !menuToggle.contains(event.target)) {
+                        menuToggle.classList.remove('active');
+                        headerLinks.classList.remove('active');
+                    }
+                });
+
+                // Close menu when window is resized to desktop size
+                window.addEventListener('resize', function() {
+                    if (window.innerWidth > 768) {
+                        menuToggle.classList.remove('active');
+                        headerLinks.classList.remove('active');
+                    }
+                });
+            }
+
+            // Mobile search functionality
+            const searchInput = document.querySelector('.search-input');
+            const searchResults = document.querySelector('.search-results');
+            const searchOverlay = document.querySelector('.search-overlay');
+            
+            if (searchInput && window.innerWidth <= 768) {
+                // Create overlay if it doesn't exist
+                if (!searchOverlay) {
+                    const overlay = document.createElement('div');
+                    overlay.className = 'search-overlay';
+                    document.body.appendChild(overlay);
+                }
+
+                // Create results container if it doesn't exist
+                if (!searchResults) {
+                    const results = document.createElement('div');
+                    results.className = 'search-results';
+                    document.querySelector('.header-search').appendChild(results);
+                }
+
+                searchInput.addEventListener('focus', function() {
+                    document.querySelector('.search-overlay').classList.add('active');
+                    document.querySelector('.search-results').classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                });
+
+                // Close search on overlay click
+                document.querySelector('.search-overlay').addEventListener('click', function() {
+                    this.classList.remove('active');
+                    document.querySelector('.search-results').classList.remove('active');
+                    document.body.style.overflow = '';
+                });
+
+                // Handle search input
+                let debounceTimer;
+                searchInput.addEventListener('input', function() {
+                    clearTimeout(debounceTimer);
+                    debounceTimer = setTimeout(() => {
+                        if (this.value.length >= 2) {
+                            // Here you would typically make an API call to get search results
+                            // For now, we'll just show a placeholder
+                            document.querySelector('.search-results').innerHTML = `
+                                <div class="search-result-item">
+                                    <span>Searching for "${this.value}"...</span>
+                                </div>
+                            `;
+                        } else {
+                            document.querySelector('.search-results').innerHTML = '';
+                        }
+                    }, 300);
+                });
+            }
+        });
+    </script>
 </body>
 </html> 
