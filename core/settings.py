@@ -17,7 +17,16 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-s4k7!i9x_=zt+yv9rb8p5dv9u&!6$#zdn=8jco0_c)lha(@=c3'
+SECRET_KEY = os.getenv('SECRET_KEY')
+if not SECRET_KEY:
+    # Fallback for local development if you don't want to set it in env,
+    # but ensure a strong key is used in production via environment variables.
+    # For production, it's better to raise an error if not set.
+    if os.getenv("DEBUG", "False") == "True":
+        SECRET_KEY = 'django-insecure-s4k7!i9x_=zt+yv9rb8p5dv9u&!6$#zdn=8jco0_c)lha(@=c3' # Default dev key
+    else:
+        raise ValueError("SECRET_KEY environment variable not set for production")
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", "False") == "True"
