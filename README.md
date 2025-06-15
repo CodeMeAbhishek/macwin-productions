@@ -1,3 +1,14 @@
+# Application Screenshots
+
+![Unisphere main feed showing user posts and interactions.](Screenshots/Screenshot%202025-06-15%20210402.png "Unisphere Main Feed")
+_Unisphere main feed showing user posts and interactions._
+
+![User profile page in Unisphere.](Screenshots/Screenshot%202025-06-15%20210509.png "User Profile")
+_User profile page in Unisphere._
+
+![Real-time chat interface.](Screenshots/Screenshot%202025-06-15%20210519.png "Chat Interface")
+_Real-time chat interface._
+
 # Unisphere - Social Media Platform
 
 ## Project Overview
@@ -410,4 +421,4 @@ class CommentForm:
 - Cloudinary integration
 - File size validation
 - Image format validation
-- Static file optimization 
+- Static file optimization
